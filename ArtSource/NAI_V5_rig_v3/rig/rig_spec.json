@@ -1,0 +1,236 @@
+{
+  "canvas_size": [
+    832,
+    1216
+  ],
+  "draw_order_back_to_front": [
+    "01b_hair_back_segment2.png",
+    "10c_arm_far_hand.png",
+    "10b_arm_far_forearm.png",
+    "10a_arm_far_upper.png",
+    "14_hair_front_far.png",
+    "02b_coat_tail_back_extra.png",
+    "04_leg_rear_lower.png",
+    "04_leg_rear_upper.png",
+    "06_boot_rear.png",
+    "05_leg_front_lower.png",
+    "05_leg_front_upper.png",
+    "07_boot_front.png",
+    "08_skirt.png",
+    "15_head_face.png",
+    "01a_hair_back_main.png",
+    "09a_torso_main.png",
+    "02a_coat_tail_back_main.png",
+    "16_hair_front_near.png",
+    "20_bangs_front.png",
+    "15_ear.png",
+    "18_eye_main.png",
+    "09b_torso_extra.png",
+    "09c_torso_patch.png",
+    "13_hand_near.png",
+    "19_eye_upper_detail.png",
+    "12_arm_near_forearm.png",
+    "11_arm_near_upper.png",
+    "17_cap.png"
+  ],
+  "bones": {
+    "root": {
+      "parent": null,
+      "pivot": [
+        455.0,
+        660.0
+      ]
+    },
+    "pelvis": {
+      "parent": "root",
+      "pivot": [
+        465.0,
+        530.0
+      ]
+    },
+    "torso": {
+      "parent": "pelvis",
+      "pivot": [
+        465.0,
+        515.0
+      ]
+    },
+    "skirt": {
+      "parent": "pelvis",
+      "pivot": [
+        475.0,
+        520.0
+      ]
+    },
+    "coat_near": {
+      "parent": "pelvis",
+      "pivot": [
+        425.0,
+        515.0
+      ]
+    },
+    "coat_far": {
+      "parent": "pelvis",
+      "pivot": [
+        485.0,
+        515.0
+      ]
+    },
+    "head": {
+      "parent": "torso",
+      "pivot": [
+        455.0,
+        292.0
+      ]
+    },
+    "cap": {
+      "parent": "head",
+      "pivot": [
+        462.0,
+        148.0
+      ]
+    },
+    "hair_back_near": {
+      "parent": "head",
+      "pivot": [
+        418.0,
+        175.0
+      ]
+    },
+    "hair_back_far": {
+      "parent": "head",
+      "pivot": [
+        445.0,
+        185.0
+      ]
+    },
+    "hair_side_near": {
+      "parent": "head",
+      "pivot": [
+        455.0,
+        170.0
+      ]
+    },
+    "hair_side_far": {
+      "parent": "head",
+      "pivot": [
+        515.0,
+        210.0
+      ]
+    },
+    "arm_near_upper": {
+      "parent": "torso",
+      "pivot": [
+        404.0,
+        375.0
+      ]
+    },
+    "arm_near_forearm": {
+      "parent": "arm_near_upper",
+      "pivot": [
+        405.0,
+        490.0
+      ]
+    },
+    "hand_near": {
+      "parent": "arm_near_forearm",
+      "pivot": [
+        411.0,
+        661.0
+      ]
+    },
+    "arm_far_upper": {
+      "parent": "torso",
+      "pivot": [
+        505.0,
+        392.0
+      ]
+    },
+    "arm_far_forearm": {
+      "parent": "arm_far_upper",
+      "pivot": [
+        524.0,
+        495.0
+      ]
+    },
+    "hand_far": {
+      "parent": "arm_far_forearm",
+      "pivot": [
+        568.0,
+        647.0
+      ]
+    },
+    "leg_front_upper": {
+      "parent": "pelvis",
+      "pivot": [
+        462.0,
+        675.0
+      ]
+    },
+    "leg_front_lower": {
+      "parent": "leg_front_upper",
+      "pivot": [
+        432.0,
+        805.0
+      ]
+    },
+    "boot_front": {
+      "parent": "leg_front_lower",
+      "pivot": [
+        406.0,
+        961.0
+      ]
+    },
+    "leg_rear_upper": {
+      "parent": "pelvis",
+      "pivot": [
+        502.0,
+        672.0
+      ]
+    },
+    "leg_rear_lower": {
+      "parent": "leg_rear_upper",
+      "pivot": [
+        475.0,
+        800.0
+      ]
+    },
+    "boot_rear": {
+      "parent": "leg_rear_lower",
+      "pivot": [
+        445.0,
+        955.0
+      ]
+    }
+  },
+  "layer_to_bone": {
+    "01b_hair_back_segment2.png": "hair_back_far",
+    "10c_arm_far_hand.png": "hand_far",
+    "10b_arm_far_forearm.png": "arm_far_forearm",
+    "10a_arm_far_upper.png": "arm_far_upper",
+    "14_hair_front_far.png": "hair_side_far",
+    "02b_coat_tail_back_extra.png": "coat_far",
+    "04_leg_rear_lower.png": "leg_rear_lower",
+    "04_leg_rear_upper.png": "leg_rear_upper",
+    "06_boot_rear.png": "boot_rear",
+    "05_leg_front_lower.png": "leg_front_lower",
+    "05_leg_front_upper.png": "leg_front_upper",
+    "07_boot_front.png": "boot_front",
+    "08_skirt.png": "skirt",
+    "15_head_face.png": "head",
+    "01a_hair_back_main.png": "hair_back_near",
+    "09a_torso_main.png": "torso",
+    "02a_coat_tail_back_main.png": "coat_near",
+    "16_hair_front_near.png": "hair_side_near",
+    "20_bangs_front.png": "head",
+    "15_ear.png": "head",
+    "18_eye_main.png": "head",
+    "09b_torso_extra.png": "torso",
+    "09c_torso_patch.png": "torso",
+    "13_hand_near.png": "hand_near",
+    "19_eye_upper_detail.png": "head",
+    "12_arm_near_forearm.png": "arm_near_forearm",
+    "11_arm_near_upper.png": "arm_near_upper",
+    "17_cap.png": "cap"
+  }
+}

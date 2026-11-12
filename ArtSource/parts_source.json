@@ -1,6 +1,6 @@
 {
- "_note": "Default input for Tools/update_parts.py. source = xcf (the GIMP master file) or pngs (one full-canvas PNG per part).",
+ "_note": "Default input for Tools/update_parts.py. Paths are relative to the project root. source = xcf (the GIMP master file) or pngs (one full-canvas PNG per part).",
  "source": "xcf",
- "xcf": "C:/Users/SSAFY/Downloads/NAI_V5_rig_v3/parts_canvas/UNASSIGNED_review_needed.xcf",
- "pngs": "C:/Users/SSAFY/Downloads/NAI_V5_rig_v3/parts_canvas"
+ "xcf": "ArtSource/NAI_V5_rig_v3/parts_canvas/UNASSIGNED_review_needed.xcf",
+ "pngs": "ArtSource/NAI_V5_rig_v3/parts_canvas"
 }

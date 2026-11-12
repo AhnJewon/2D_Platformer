@@ -1,0 +1,864 @@
+{
+  "canvas_size": [
+    832,
+    1216
+  ],
+  "source_file": "마스킹 v2(1).xcf",
+  "description": "Draft 2D cutout rig specification derived from user masks. Not a Unity/Spine project file; intended as import/reference data.",
+  "bones": [
+    {
+      "name": "root",
+      "parent": null,
+      "pivot_xy": [
+        462,
+        1160
+      ]
+    },
+    {
+      "name": "pelvis",
+      "parent": "root",
+      "pivot_xy": [
+        468,
+        684
+      ]
+    },
+    {
+      "name": "leg_rear_upper",
+      "parent": "pelvis",
+      "pivot_xy": [
+        490,
+        685
+      ]
+    },
+    {
+      "name": "leg_rear_lower",
+      "parent": "leg_rear_upper",
+      "pivot_xy": [
+        484,
+        815
+      ]
+    },
+    {
+      "name": "boot_rear",
+      "parent": "leg_rear_lower",
+      "pivot_xy": [
+        459,
+        945
+      ]
+    },
+    {
+      "name": "leg_front_upper",
+      "parent": "pelvis",
+      "pivot_xy": [
+        443,
+        686
+      ]
+    },
+    {
+      "name": "leg_front_lower",
+      "parent": "leg_front_upper",
+      "pivot_xy": [
+        431,
+        818
+      ]
+    },
+    {
+      "name": "boot_front",
+      "parent": "leg_front_lower",
+      "pivot_xy": [
+        402,
+        948
+      ]
+    },
+    {
+      "name": "skirt",
+      "parent": "pelvis",
+      "pivot_xy": [
+        520,
+        522
+      ]
+    },
+    {
+      "name": "torso",
+      "parent": "pelvis",
+      "pivot_xy": [
+        466,
+        520
+      ]
+    },
+    {
+      "name": "coat_back_main",
+      "parent": "pelvis",
+      "pivot_xy": [
+        460,
+        510
+      ]
+    },
+    {
+      "name": "coat_back_extra",
+      "parent": "pelvis",
+      "pivot_xy": [
+        596,
+        508
+      ]
+    },
+    {
+      "name": "coat_blue",
+      "parent": "pelvis",
+      "pivot_xy": [
+        506,
+        672
+      ]
+    },
+    {
+      "name": "arm_far_upper",
+      "parent": "torso",
+      "pivot_xy": [
+        552,
+        451
+      ]
+    },
+    {
+      "name": "arm_far_forearm",
+      "parent": "arm_far_upper",
+      "pivot_xy": [
+        551,
+        507
+      ]
+    },
+    {
+      "name": "hand_far",
+      "parent": "arm_far_forearm",
+      "pivot_xy": [
+        607,
+        649
+      ]
+    },
+    {
+      "name": "arm_near_upper",
+      "parent": "torso",
+      "pivot_xy": [
+        404,
+        347
+      ]
+    },
+    {
+      "name": "arm_near_forearm",
+      "parent": "arm_near_upper",
+      "pivot_xy": [
+        401,
+        500
+      ]
+    },
+    {
+      "name": "hand_near",
+      "parent": "arm_near_forearm",
+      "pivot_xy": [
+        410,
+        667
+      ]
+    },
+    {
+      "name": "neck",
+      "parent": "torso",
+      "pivot_xy": [
+        470,
+        286
+      ]
+    },
+    {
+      "name": "head",
+      "parent": "neck",
+      "pivot_xy": [
+        468,
+        233
+      ]
+    },
+    {
+      "name": "hair_back_main",
+      "parent": "head",
+      "pivot_xy": [
+        413,
+        158
+      ]
+    },
+    {
+      "name": "hair_back_segment2",
+      "parent": "head",
+      "pivot_xy": [
+        387,
+        156
+      ]
+    },
+    {
+      "name": "hair_front_far",
+      "parent": "head",
+      "pivot_xy": [
+        509,
+        218
+      ]
+    },
+    {
+      "name": "hair_front_near",
+      "parent": "head",
+      "pivot_xy": [
+        448,
+        149
+      ]
+    },
+    {
+      "name": "cap",
+      "parent": "head",
+      "pivot_xy": [
+        449,
+        126
+      ]
+    },
+    {
+      "name": "eye_main",
+      "parent": "head",
+      "pivot_xy": [
+        490,
+        216
+      ]
+    },
+    {
+      "name": "eye_upper_detail",
+      "parent": "head",
+      "pivot_xy": [
+        495,
+        191
+      ]
+    },
+    {
+      "name": "bangs_front",
+      "parent": "head",
+      "pivot_xy": [
+        501,
+        159
+      ]
+    }
+  ],
+  "z_order_back_to_front": [
+    "03_coat_tail_blue",
+    "02b_coat_tail_back_extra",
+    "02a_coat_tail_back_main",
+    "10a_arm_far_upper",
+    "10b_arm_far_forearm",
+    "10c_arm_far_hand",
+    "04b_leg_rear_lower",
+    "04a_leg_rear_upper",
+    "06_boot_rear",
+    "05b_leg_front_lower",
+    "05a_leg_front_upper",
+    "07_boot_front",
+    "01b_hair_back_segment2",
+    "01a_hair_back_main",
+    "08_skirt",
+    "09c_torso_patch",
+    "09a_torso_main",
+    "09b_torso_extra",
+    "11_arm_near_upper",
+    "12_arm_near_forearm",
+    "13_hand_near",
+    "14_hair_front_far",
+    "15_head_face",
+    "18_eye_main",
+    "19_eye_upper_detail",
+    "20_bangs_front",
+    "16_hair_front_near",
+    "15_ear",
+    "17_cap"
+  ],
+  "part_to_bone": {
+    "06_boot_rear": "boot_rear",
+    "07_boot_front": "boot_front",
+    "08_skirt": "skirt",
+    "09a_torso_main": "torso",
+    "09b_torso_extra": "torso",
+    "09c_torso_patch": "torso",
+    "02a_coat_tail_back_main": "coat_back_main",
+    "02b_coat_tail_back_extra": "coat_back_extra",
+    "03_coat_tail_blue": "coat_blue",
+    "10a_arm_far_upper": "arm_far_upper",
+    "10b_arm_far_forearm": "arm_far_forearm",
+    "10c_arm_far_hand": "hand_far",
+    "11_arm_near_upper": "arm_near_upper",
+    "12_arm_near_forearm": "arm_near_forearm",
+    "13_hand_near": "hand_near",
+    "15_head_face": "head",
+    "01a_hair_back_main": "hair_back_main",
+    "01b_hair_back_segment2": "hair_back_segment2",
+    "14_hair_front_far": "hair_front_far",
+    "16_hair_front_near": "hair_front_near",
+    "17_cap": "cap",
+    "18_eye_main": "eye_main",
+    "19_eye_upper_detail": "eye_upper_detail",
+    "20_bangs_front": "bangs_front",
+    "04a_leg_rear_upper": "leg_rear_upper",
+    "04b_leg_rear_lower": "leg_rear_lower",
+    "05a_leg_front_upper": "leg_front_upper",
+    "05b_leg_front_lower": "leg_front_lower",
+    "15_ear": "head"
+  },
+  "notes": [
+    "This is a draft rig spec, not a directly importable Unity/Spine scene.",
+    "No hidden geometry was painted in; only visible source pixels are extracted.",
+    "Shoulders, elbows, and body hidden behind hair/arms may need inpaint or manual paintover before wide rotations.",
+    "The latest XCF still contains some duplicate/patch torso and hair support layers; they are preserved as separate parts."
+  ],
+  "coverage": {
+    "unassigned_pixels": 1790,
+    "unassigned_percentage": 0.5,
+    "overlap_pixels": 4734,
+    "overlap_percentage": 1.31
+  },
+  "parts": [
+    {
+      "id": "18_eye_main",
+      "layer_index": 5,
+      "label": "COLOR MASK 01 | 뒷머리 | 01_hair_back 복사 #3",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        452,
+        191,
+        528,
+        243
+      ],
+      "crop_origin_xy": [
+        449,
+        188
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 1676
+    },
+    {
+      "id": "19_eye_upper_detail",
+      "layer_index": 6,
+      "label": "COLOR MASK 01 | 뒷머리 | 01_hair_back 복사 #2",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        479,
+        175,
+        528,
+        219
+      ],
+      "crop_origin_xy": [
+        476,
+        172
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 192
+    },
+    {
+      "id": "20_bangs_front",
+      "layer_index": 7,
+      "label": "COLOR MASK 01 | 뒷머리 | 01_hair_back 복사 #1",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        466,
+        159,
+        565,
+        220
+      ],
+      "crop_origin_xy": [
+        463,
+        156
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 3529
+    },
+    {
+      "id": "01b_hair_back_segment2",
+      "layer_index": 8,
+      "label": "COLOR MASK 01-2 | 뒷머리 | 01_hair_back 복사",
+      "offset": [
+        89,
+        155
+      ],
+      "bbox_xyxy": [
+        94,
+        155,
+        491,
+        822
+      ],
+      "crop_origin_xy": [
+        91,
+        152
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 40746
+    },
+    {
+      "id": "01a_hair_back_main",
+      "layer_index": 9,
+      "label": "COLOR MASK 01 | 뒷머리 | 01_hair_back",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        76,
+        156,
+        429,
+        860
+      ],
+      "crop_origin_xy": [
+        73,
+        153
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 39942
+    },
+    {
+      "id": "02b_coat_tail_back_extra",
+      "layer_index": 10,
+      "label": "COLOR MASK 02-2 | 뒤 코트 자락 | 02_coat_tail_back 복사",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        539,
+        508,
+        654,
+        966
+      ],
+      "crop_origin_xy": [
+        536,
+        505
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 5851
+    },
+    {
+      "id": "02a_coat_tail_back_main",
+      "layer_index": 11,
+      "label": "COLOR MASK 02 | 뒤 코트 자락 | 02_coat_tail_back",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        185,
+        497,
+        500,
+        972
+      ],
+      "crop_origin_xy": [
+        182,
+        494
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 55278
+    },
+    {
+      "id": "03_coat_tail_blue",
+      "layer_index": 12,
+      "label": "COLOR MASK 03 | 파란 코트 안감 | 03_coat_tail_blue",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        378,
+        673,
+        635,
+        934
+      ],
+      "crop_origin_xy": [
+        375,
+        670
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 21769
+    },
+    {
+      "id": "04_leg_rear",
+      "layer_index": 13,
+      "label": "COLOR MASK 04 | 먼쪽 다리 | 04_leg_rear",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        438,
+        684,
+        543,
+        950
+      ],
+      "crop_origin_xy": [
+        435,
+        681
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 11540
+    },
+    {
+      "id": "05_leg_front",
+      "layer_index": 14,
+      "label": "COLOR MASK 05 | 가까운쪽 다리 | 05_leg_front",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        369,
+        685,
+        500,
+        954
+      ],
+      "crop_origin_xy": [
+        366,
+        682
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 16820
+    },
+    {
+      "id": "06_boot_rear",
+      "layer_index": 15,
+      "label": "COLOR MASK 06 | 먼쪽 부츠 | 06_boot_rear",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        448,
+        938,
+        573,
+        1183
+      ],
+      "crop_origin_xy": [
+        445,
+        935
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 12791
+    },
+    {
+      "id": "07_boot_front",
+      "layer_index": 16,
+      "label": "COLOR MASK 07 | 가까운쪽 부츠 | 07_boot_front",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        337,
+        942,
+        527,
+        1199
+      ],
+      "crop_origin_xy": [
+        334,
+        939
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 30960
+    },
+    {
+      "id": "08_skirt",
+      "layer_index": 17,
+      "label": "COLOR MASK 08 | 치마 | 08_skirt",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        450,
+        522,
+        589,
+        690
+      ],
+      "crop_origin_xy": [
+        447,
+        519
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 13660
+    },
+    {
+      "id": "09b_torso_extra",
+      "layer_index": 18,
+      "label": "COLOR MASK 09-2 | 몸통/제복 | 09_torso 복사",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        419,
+        331,
+        467,
+        519
+      ],
+      "crop_origin_xy": [
+        416,
+        328
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 2684
+    },
+    {
+      "id": "09c_torso_patch",
+      "layer_index": 19,
+      "label": "COLOR MASK 09-2 | 몸통/제복 | 09_torso",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        437,
+        452,
+        554,
+        564
+      ],
+      "crop_origin_xy": [
+        434,
+        449
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 2616
+    },
+    {
+      "id": "09a_torso_main",
+      "layer_index": 20,
+      "label": "COLOR MASK 09 | 몸통/제복 | 09_torso",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        369,
+        290,
+        556,
+        564
+      ],
+      "crop_origin_xy": [
+        366,
+        287
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 14260
+    },
+    {
+      "id": "10a_arm_far_upper",
+      "layer_index": 21,
+      "label": "COLOR MASK 10-2 | 반대편 상완 | 10_arm_upper",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        535,
+        451,
+        565,
+        507
+      ],
+      "crop_origin_xy": [
+        532,
+        448
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 646
+    },
+    {
+      "id": "10b_arm_far_forearm",
+      "layer_index": 22,
+      "label": "COLOR MASK 10-2 | 반대편 하완/소매 | 10_arm_forearm",
+      "offset": [
+        540,
+        506
+      ],
+      "bbox_xyxy": [
+        541,
+        507,
+        614,
+        650
+      ],
+      "crop_origin_xy": [
+        538,
+        504
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 3478
+    },
+    {
+      "id": "10c_arm_far_hand",
+      "layer_index": 23,
+      "label": "COLOR MASK 10 | 반대편 손 | 10_hand_far",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        593,
+        646,
+        629,
+        720
+      ],
+      "crop_origin_xy": [
+        590,
+        643
+      ],
+      "normalized_low_alpha": true,
+      "pixel_area": 1498
+    },
+    {
+      "id": "11_arm_near_upper",
+      "layer_index": 24,
+      "label": "COLOR MASK 11 | 가까운쪽 상완 | 11_arm_upper",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        368,
+        344,
+        443,
+        503
+      ],
+      "crop_origin_xy": [
+        365,
+        341
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 10004
+    },
+    {
+      "id": "12_arm_near_forearm",
+      "layer_index": 25,
+      "label": "COLOR MASK 12 | 가까운쪽 하완/소매 | 12_arm_forearm",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        357,
+        497,
+        452,
+        668
+      ],
+      "crop_origin_xy": [
+        354,
+        494
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 14323
+    },
+    {
+      "id": "13_hand_near",
+      "layer_index": 26,
+      "label": "COLOR MASK 13 | 장갑 낀 손 | 13_hand_front",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        361,
+        665,
+        459,
+        738
+      ],
+      "crop_origin_xy": [
+        358,
+        662
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 5199
+    },
+    {
+      "id": "14_hair_front_far",
+      "layer_index": 27,
+      "label": "COLOR MASK 14 | 반대편 옆머리 | 14_hair_front_far",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        495,
+        218,
+        573,
+        486
+      ],
+      "crop_origin_xy": [
+        492,
+        215
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 4862
+    },
+    {
+      "id": "15_head_face",
+      "layer_index": 28,
+      "label": "COLOR MASK 15 | 얼굴/귀/목 | 15_head_face",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        396,
+        167,
+        539,
+        299
+      ],
+      "crop_origin_xy": [
+        393,
+        164
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 5862
+    },
+    {
+      "id": "16_hair_front_near",
+      "layer_index": 29,
+      "label": "COLOR MASK 16 | 가까운쪽 옆머리 | 16_hair_front_near",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        425,
+        148,
+        507,
+        489
+      ],
+      "crop_origin_xy": [
+        422,
+        145
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 11677
+    },
+    {
+      "id": "17_cap",
+      "layer_index": 30,
+      "label": "COLOR MASK 17 | 장교 모자 | 17_cap",
+      "offset": [
+        0,
+        0
+      ],
+      "bbox_xyxy": [
+        288,
+        22,
+        605,
+        185
+      ],
+      "crop_origin_xy": [
+        285,
+        19
+      ],
+      "normalized_low_alpha": false,
+      "pixel_area": 31524
+    }
+  ]
+}

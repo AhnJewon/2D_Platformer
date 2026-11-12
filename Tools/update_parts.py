@@ -1,8 +1,9 @@
 """Re-import repainted character parts into Assets/Character/Player.psb WITHOUT touching the rig.
 
   uv run --no-project --with numpy --with pillow python Tools/update_parts.py            # use ArtSource/parts_source.json
-  ... update_parts.py --source xcf  --xcf  "C:/.../UNASSIGNED_review_needed.xcf"
-  ... update_parts.py --source pngs --pngs "C:/.../parts_canvas"                          # <part>.png, full 832x1216 canvas
+  ... update_parts.py --source xcf  --xcf  ArtSource/NAI_V5_rig_v3/parts_canvas/UNASSIGNED_review_needed.xcf
+  ... update_parts.py --source pngs --pngs ArtSource/NAI_V5_rig_v3/parts_canvas          # <part>.png, full 832x1216 canvas
+Run it from the project folder. Relative paths are resolved against the project root.
   ... update_parts.py --dry-run                                                           # report only, change nothing
 
 What it does
@@ -67,10 +68,12 @@ def main():
     try:
         if source == 'xcf':
             xcf = a.xcf or cfg.get('xcf')
+            xcf = xcf and os.path.join(ROOT, xcf)
             if not xcf or not os.path.exists(xcf): raise SystemExit('XCF not found: %s' % xcf)
             subprocess.run([sys.executable, '-I', os.path.join(TOOLS, 'xcf_extract.py'), xcf, staging], check=True, stdout=subprocess.DEVNULL)
         else:
             folder = a.pngs or cfg.get('pngs')
+            folder = folder and os.path.join(ROOT, folder)
             if not folder or not os.path.isdir(folder): raise SystemExit('PNG folder not found: %s' % folder)
             read_pngs(folder, order, staging)
 
@@ -111,7 +114,6 @@ def main():
 
         shutil.rmtree(os.path.join(ART, 'layers'))
         shutil.copytree(staging, os.path.join(ART, 'layers'))
-        if source == 'xcf': shutil.copy2(xcf, os.path.join(ART, 'player_parts.xcf'))
         if grown: json.dump(bounds_doc, open(os.path.join(ART, 'layer_bounds.json'), 'w', encoding='utf-8'), indent=1)
 
         subprocess.run([sys.executable, '-I', os.path.join(TOOLS, 'build_psb.py'), os.path.join(ART, 'layers'), PSB,

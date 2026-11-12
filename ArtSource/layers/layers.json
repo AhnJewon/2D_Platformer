@@ -6,7 +6,7 @@
  "layers": [
   {
    "index": 0,
-   "name": "17_cap.png",
+   "name": "11_arm_near_upper.png",
    "visible": true,
    "group": false,
    "path": [],
@@ -20,16 +20,16 @@
    ],
    "file": "L00.png",
    "bbox": [
-    288,
-    22,
-    606,
-    188
+    368,
+    344,
+    444,
+    505
    ],
    "bpp": 4
   },
   {
    "index": 1,
-   "name": "19_eye_upper_detail.png",
+   "name": "12_arm_near_forearm.png",
    "visible": true,
    "group": false,
    "path": [],
@@ -43,16 +43,16 @@
    ],
    "file": "L01.png",
    "bbox": [
-    478,
-    175,
-    529,
-    220
+    357,
+    459,
+    454,
+    669
    ],
    "bpp": 4
   },
   {
    "index": 2,
-   "name": "20_bangs_front.png",
+   "name": "13_hand_near.png",
    "visible": true,
    "group": false,
    "path": [],
@@ -66,16 +66,16 @@
    ],
    "file": "L02.png",
    "bbox": [
-    465,
-    130,
-    566,
-    222
+    361,
+    653,
+    460,
+    739
    ],
    "bpp": 4
   },
   {
    "index": 3,
-   "name": "18_eye_main.png",
+   "name": "17_cap.png",
    "visible": true,
    "group": false,
    "path": [],
@@ -89,16 +89,16 @@
    ],
    "file": "L03.png",
    "bbox": [
-    452,
-    190,
-    529,
-    247
+    288,
+    22,
+    606,
+    188
    ],
    "bpp": 4
   },
   {
    "index": 4,
-   "name": "16_hair_front_near.png",
+   "name": "19_eye_upper_detail.png",
    "visible": true,
    "group": false,
    "path": [],
@@ -112,16 +112,16 @@
    ],
    "file": "L04.png",
    "bbox": [
-    423,
-    138,
-    508,
-    490
+    478,
+    175,
+    529,
+    220
    ],
    "bpp": 4
   },
   {
    "index": 5,
-   "name": "15_ear.png",
+   "name": "20_bangs_front.png",
    "visible": true,
    "group": false,
    "path": [],
@@ -135,16 +135,16 @@
    ],
    "file": "L05.png",
    "bbox": [
-    396,
-    196,
-    428,
-    258
+    465,
+    130,
+    566,
+    222
    ],
    "bpp": 4
   },
   {
    "index": 6,
-   "name": "11_arm_near_upper.png",
+   "name": "18_eye_main.png",
    "visible": true,
    "group": false,
    "path": [],
@@ -158,16 +158,16 @@
    ],
    "file": "L06.png",
    "bbox": [
-    368,
-    344,
-    444,
-    505
+    452,
+    190,
+    529,
+    247
    ],
    "bpp": 4
   },
   {
    "index": 7,
-   "name": "12_arm_near_forearm.png",
+   "name": "16_hair_front_near.png",
    "visible": true,
    "group": false,
    "path": [],
@@ -181,16 +181,16 @@
    ],
    "file": "L07.png",
    "bbox": [
-    357,
-    459,
-    454,
-    669
+    423,
+    138,
+    508,
+    490
    ],
    "bpp": 4
   },
   {
    "index": 8,
-   "name": "13_hand_near.png",
+   "name": "15_ear.png",
    "visible": true,
    "group": false,
    "path": [],
@@ -204,10 +204,10 @@
    ],
    "file": "L08.png",
    "bbox": [
-    361,
-    653,
-    460,
-    739
+    396,
+    196,
+    428,
+    258
    ],
    "bpp": 4
   },

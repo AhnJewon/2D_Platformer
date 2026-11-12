@@ -1,13 +1,15 @@
 """Re-import repainted character parts into Assets/Character/Player.psb WITHOUT touching the rig.
 
   uv run --no-project --with numpy --with pillow python Tools/update_parts.py            # use ArtSource/parts_source.json
+  ... update_parts.py --source parts                                                      # ArtSource/Parts/<part>.xcf|.png (default)
   ... update_parts.py --source xcf  --xcf  ArtSource/NAI_V5_rig_v3/parts_canvas/UNASSIGNED_review_needed.xcf
   ... update_parts.py --source pngs --pngs ArtSource/NAI_V5_rig_v3/parts_canvas          # <part>.png, full 832x1216 canvas
 Run it from the project folder. Relative paths are resolved against the project root.
   ... update_parts.py --dry-run                                                           # report only, change nothing
 
 What it does
- 1. Reads the parts (XCF layers, or one full-canvas PNG per part named like the layer, e.g. 17_cap.png).
+ 1. Reads the parts: one file per part in ArtSource/Parts (<part>.xcf: visible layers except REF*, or <part>.png),
+    or the master XCF's layers, or one full-canvas PNG per part. For continuous sync use Tools/watch_parts.py.
  2. Checks the part names match ArtSource/layer_order.json (a new/renamed/removed part needs a rig change: it stops).
  3. Backs up Player.psb and Player.psb.meta (the meta holds your bones/mesh/weights) to ArtSource/backups/<time>/.
  4. Writes the new layer PNGs to ArtSource/layers and rebuilds Player.psb with the SAME layer names, order and
@@ -32,14 +34,35 @@ def load(p): return json.load(open(p, encoding='utf-8'))
 def stem(n): return os.path.splitext(n)[0]
 
 
-def read_pngs(folder, names, out):
+CACHE = os.path.join(ART, '.parts_cache')  # decoded part XCFs, keyed by file mtime/size (not committed)
+
+
+def part_image(folder, n):
+    """<n>.xcf (visible layers except REF*, composited) or <n>.png from folder, as a PIL RGBA image."""
+    x, p = os.path.join(folder, n + '.xcf'), os.path.join(folder, n + '.png')
+    if os.path.exists(x):
+        st = os.stat(x)
+        key = '%d_%d' % (st.st_mtime_ns, st.st_size)
+        cached = os.path.join(CACHE, n + '.' + key + '.png')
+        if os.path.exists(cached): return Image.open(cached).convert('RGBA')
+        sys.path.insert(0, TOOLS)
+        import xcf_read
+        im = Image.fromarray(xcf_read.composite(x, skip=lambda name: name.strip().upper().startswith('REF')), 'RGBA')
+        os.makedirs(CACHE, exist_ok=True)
+        for old in os.listdir(CACHE):
+            if old.startswith(n + '.'): os.remove(os.path.join(CACHE, old))
+        im.save(cached)
+        return im
+    if os.path.exists(p): return Image.open(p).convert('RGBA')
+    raise SystemExit('missing part file: %s(.xcf|.png)' % os.path.join(folder, n))
+
+
+def read_parts(folder, names, out):
     layers, canvas = [], None
     for i, n in enumerate(names):
-        p = os.path.join(folder, n + '.png')
-        if not os.path.exists(p): raise SystemExit('missing part image: ' + p)
-        im = Image.open(p).convert('RGBA')
+        im = part_image(folder, n)
         if canvas is None: canvas = list(im.size)
-        if list(im.size) != canvas: raise SystemExit('%s is %s, expected full canvas %s' % (p, im.size, canvas))
+        if list(im.size) != canvas: raise SystemExit('%s is %s, expected the full canvas %s' % (n, im.size, canvas))
         fn = 'L%02d.png' % i
         im.save(os.path.join(out, fn))
         layers.append(dict(index=i, name=n + '.png', visible=True, group=False, file=fn, bbox=list(im.getbbox()) if im.getbbox() else None))
@@ -51,13 +74,13 @@ def parts_of(layers_dir):
     return {stem(l['name']): l for l in m['layers'] if l.get('file') and l['visible'] and l.get('bbox')}
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument('--source', choices=['xcf', 'pngs'])
-    ap.add_argument('--xcf'); ap.add_argument('--pngs')
+    ap.add_argument('--source', choices=['parts', 'xcf', 'pngs'])
+    ap.add_argument('--parts'); ap.add_argument('--xcf'); ap.add_argument('--pngs')
     ap.add_argument('--dry-run', action='store_true')
     ap.add_argument('--no-unity', action='store_true', help='do not ask the Editor to reimport')
-    a = ap.parse_args()
+    a = ap.parse_args(argv)
 
     cfg_path = os.path.join(ART, 'parts_source.json')
     cfg = load(cfg_path) if os.path.exists(cfg_path) else {}
@@ -72,10 +95,10 @@ def main():
             if not xcf or not os.path.exists(xcf): raise SystemExit('XCF not found: %s' % xcf)
             subprocess.run([sys.executable, '-I', os.path.join(TOOLS, 'xcf_extract.py'), xcf, staging], check=True, stdout=subprocess.DEVNULL)
         else:
-            folder = a.pngs or cfg.get('pngs')
+            folder = (a.parts or cfg.get('parts')) if source == 'parts' else (a.pngs or cfg.get('pngs'))
             folder = folder and os.path.join(ROOT, folder)
-            if not folder or not os.path.isdir(folder): raise SystemExit('PNG folder not found: %s' % folder)
-            read_pngs(folder, order, staging)
+            if not folder or not os.path.isdir(folder): raise SystemExit('parts folder not found: %s' % folder)
+            read_parts(folder, order, staging)
 
         new, old = parts_of(staging), parts_of(os.path.join(ART, 'layers'))
         if set(new) != set(order):
@@ -111,6 +134,9 @@ def main():
         os.makedirs(bdir)
         for f in (PSB, PSB + '.meta'): shutil.copy2(f, bdir)
         print('backup:', os.path.relpath(bdir, ROOT))
+        keep = 20  # the watcher syncs on every save, so only the newest backups are kept
+        for old in sorted(os.listdir(os.path.join(ART, 'backups')))[:-keep]:
+            shutil.rmtree(os.path.join(ART, 'backups', old), ignore_errors=True)
 
         shutil.rmtree(os.path.join(ART, 'layers'))
         shutil.copytree(staging, os.path.join(ART, 'layers'))

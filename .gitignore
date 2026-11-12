@@ -38,3 +38,4 @@ Thumbs.db
 /ArtSource/pending_refit.json
 /ArtSource/parts_*/
 __pycache__/
+/ArtSource/.parts_cache/

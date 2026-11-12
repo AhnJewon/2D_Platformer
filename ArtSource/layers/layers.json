@@ -201,10 +201,23 @@
   },
   {
    "index": 15,
-   "name": "08_skirt.png",
+   "name": "15b_neck.png",
    "visible": true,
    "group": false,
    "file": "L15.png",
+   "bbox": [
+    418,
+    254,
+    478,
+    320
+   ]
+  },
+  {
+   "index": 16,
+   "name": "08_skirt.png",
+   "visible": true,
+   "group": false,
+   "file": "L16.png",
    "bbox": [
     398,
     503,
@@ -213,11 +226,11 @@
    ]
   },
   {
-   "index": 16,
+   "index": 17,
    "name": "07_boot_front.png",
    "visible": true,
    "group": false,
-   "file": "L16.png",
+   "file": "L17.png",
    "bbox": [
     337,
     942,
@@ -226,11 +239,11 @@
    ]
   },
   {
-   "index": 17,
+   "index": 18,
    "name": "05_leg_front_upper.png",
    "visible": true,
    "group": false,
-   "file": "L17.png",
+   "file": "L18.png",
    "bbox": [
     393,
     645,
@@ -239,11 +252,11 @@
    ]
   },
   {
-   "index": 18,
+   "index": 19,
    "name": "05_leg_front_lower.png",
    "visible": true,
    "group": false,
-   "file": "L18.png",
+   "file": "L19.png",
    "bbox": [
     369,
     783,
@@ -252,11 +265,11 @@
    ]
   },
   {
-   "index": 19,
+   "index": 20,
    "name": "06_boot_rear.png",
    "visible": true,
    "group": false,
-   "file": "L19.png",
+   "file": "L20.png",
    "bbox": [
     380,
     921,
@@ -265,11 +278,11 @@
    ]
   },
   {
-   "index": 20,
+   "index": 21,
    "name": "04_leg_rear_upper.png",
    "visible": true,
    "group": false,
-   "file": "L20.png",
+   "file": "L21.png",
    "bbox": [
     427,
     642,
@@ -278,11 +291,11 @@
    ]
   },
   {
-   "index": 21,
+   "index": 22,
    "name": "04_leg_rear_lower.png",
    "visible": true,
    "group": false,
-   "file": "L21.png",
+   "file": "L22.png",
    "bbox": [
     409,
     780,
@@ -291,11 +304,11 @@
    ]
   },
   {
-   "index": 22,
+   "index": 23,
    "name": "02b_coat_tail_back_extra.png",
    "visible": true,
    "group": false,
-   "file": "L22.png",
+   "file": "L23.png",
    "bbox": [
     287,
     494,
@@ -304,11 +317,11 @@
    ]
   },
   {
-   "index": 23,
+   "index": 24,
    "name": "14_hair_front_far.png",
    "visible": true,
    "group": false,
-   "file": "L23.png",
+   "file": "L24.png",
    "bbox": [
     495,
     200,
@@ -317,11 +330,11 @@
    ]
   },
   {
-   "index": 24,
+   "index": 25,
    "name": "10a_arm_far_upper.png",
    "visible": true,
    "group": false,
-   "file": "L24.png",
+   "file": "L25.png",
    "bbox": [
     470,
     361,
@@ -330,11 +343,11 @@
    ]
   },
   {
-   "index": 25,
+   "index": 26,
    "name": "10b_arm_far_forearm.png",
    "visible": true,
    "group": false,
-   "file": "L25.png",
+   "file": "L26.png",
    "bbox": [
     490,
     455,
@@ -343,11 +356,11 @@
    ]
   },
   {
-   "index": 26,
+   "index": 27,
    "name": "10c_arm_far_hand.png",
    "visible": true,
    "group": false,
-   "file": "L26.png",
+   "file": "L27.png",
    "bbox": [
     536,
     628,
@@ -356,11 +369,11 @@
    ]
   },
   {
-   "index": 27,
+   "index": 28,
    "name": "01b_hair_back_segment2.png",
    "visible": true,
    "group": false,
-   "file": "L27.png",
+   "file": "L28.png",
    "bbox": [
     89,
     155,

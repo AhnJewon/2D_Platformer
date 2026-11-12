@@ -108,9 +108,12 @@ def main(argv=None):
 
         bounds_doc = load(os.path.join(ART, 'layer_bounds.json'))
         bounds = bounds_doc['bounds']
-        changed, grown = [], []
+        changed, grown, added = [], [], []
         for n in order:
             nb = new[n]['bbox']
+            if n not in old:  # a part that was just added to layer_order.json
+                added.append(n); changed.append((n, -1)); bounds[n] = list(nb)
+                continue
             A = np.asarray(Image.open(os.path.join(staging, new[n]['file'])).convert('RGBA'), np.int16)
             B = np.asarray(Image.open(os.path.join(ART, 'layers', old[n]['file'])).convert('RGBA'), np.int16)
             diff = int(((np.abs(A - B).max(2) > 2) & ((A[..., 3] > 0) | (B[..., 3] > 0))).sum())
@@ -121,10 +124,12 @@ def main(argv=None):
                 grown.append((n, lb, bounds[n]))
 
         print('source:', source)
-        print('changed parts:', ', '.join('%s (%d px)' % c for c in changed) if changed else 'none')
+        print('changed parts:', ', '.join(('%s (NEW)' % c[0]) if c[1] < 0 else ('%s (%d px)' % c) for c in changed) if changed else 'none')
+        removed = sorted(set(old) - set(order))
+        if removed: print('removed parts:', ', '.join(removed))
         for n, lb, nb in grown:
             print('RECT GROWN  %s %s -> %s : extend this sprite\'s mesh in the Skinning Editor afterwards' % (n, lb, nb))
-        if not changed:
+        if not changed and not removed:
             print('Nothing to update.'); return
         if a.dry_run:
             print('dry run: nothing written'); return
@@ -140,7 +145,7 @@ def main(argv=None):
 
         shutil.rmtree(os.path.join(ART, 'layers'))
         shutil.copytree(staging, os.path.join(ART, 'layers'))
-        if grown: json.dump(bounds_doc, open(os.path.join(ART, 'layer_bounds.json'), 'w', encoding='utf-8'), indent=1)
+        if grown or added: json.dump(bounds_doc, open(os.path.join(ART, 'layer_bounds.json'), 'w', encoding='utf-8'), indent=1)
 
         subprocess.run([sys.executable, '-I', os.path.join(TOOLS, 'build_psb.py'), os.path.join(ART, 'layers'), PSB,
                         '--order', os.path.join(ART, 'layer_order.json'), '--bounds', os.path.join(ART, 'layer_bounds.json')], check=True)
@@ -150,6 +155,12 @@ def main(argv=None):
             parts = [dict(name=n, growLeft=lb[0] - nb[0], growBottom=nb[3] - lb[3], width=nb[2] - nb[0], height=nb[3] - nb[1])
                      for n, lb, nb in grown]
             json.dump(dict(parts=parts), open(refit, 'w', encoding='utf-8'), indent=1)
+        if added:  # new sprites have no skinning yet: bind them to the bones listed in bone_layout.json
+            layout = load(os.path.join(ART, 'bone_layout.json'))['parts']
+            missing = [n for n in added if n not in layout]
+            if missing: raise SystemExit('add %s to "parts" in ArtSource/bone_layout.json first' % missing)
+            json.dump(dict(parts=[dict(name=n, bones=layout[n]) for n in added]),
+                      open(os.path.join(ART, 'pending_skin.json'), 'w', encoding='utf-8'), indent=1)
 
         if a.no_unity:
             print('Unity: skipped (--no-unity)')
@@ -162,8 +173,8 @@ def main(argv=None):
                 print('Unity:', r.stdout.strip().strip('"').replace('\\n', '\n'))
             else:
                 print('Unity: Editor not reachable. Unity reimports the PSB when it next opens/gets focus.')
-        if os.path.exists(refit):
-            print('PENDING: grown parts are not refitted yet. With the Unity Editor open, run:\n'
+        if os.path.exists(refit) or os.path.exists(os.path.join(ART, 'pending_skin.json')):
+            print('PENDING: grown/new parts are not fitted yet. With the Unity Editor open, run:\n'
                   '  unity command script eval --project-path "%s" --file Tools/reimport_player.cs' % ROOT)
     finally:
         shutil.rmtree(staging, ignore_errors=True)

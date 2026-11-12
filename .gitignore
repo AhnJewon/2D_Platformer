@@ -39,3 +39,4 @@ Thumbs.db
 /ArtSource/parts_*/
 __pycache__/
 /ArtSource/.parts_cache/
+/ArtSource/pending_skin.json

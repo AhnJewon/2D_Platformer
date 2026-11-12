@@ -31,7 +31,7 @@
  ],
  "parts": {
   "17_cap":["head"], "19_eye_upper_detail":["head"], "20_bangs_front":["head"], "18_eye_main":["head"],
-  "15_ear":["head"], "15_head_face":["head"],
+  "15_ear":["head"], "15_head_face":["head"], "15b_neck":["neck"],
   "16_hair_front_near":["head","hair_front_near_1","hair_front_near_2"],
   "14_hair_front_far":["head","hair_front_far_1","hair_front_far_2"],
   "01a_hair_back_main":["head","hair_back_1","hair_back_2","hair_back_3"],

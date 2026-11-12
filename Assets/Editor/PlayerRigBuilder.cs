@@ -89,6 +89,95 @@ public static class PlayerRigBuilder
         return string.Join("\n", log);
     }
 
+    [Serializable] class NewPart { public string name; public string[] bones; }
+    [Serializable] class NewPartList { public NewPart[] parts; }
+
+    // Skins sprites that were just added to the PSB (Tools/update_parts.py writes ArtSource/pending_skin.json).
+    // Uses the CURRENT character skeleton (your Skinning Editor joint edits), builds a grid mesh from the part's
+    // pixels and weights it: one bone = rigid, several = distance-based. Other sprites are not touched.
+    public static string SkinNewParts(string psbPath, string jsonPath)
+    {
+        var list = JsonUtility.FromJson<NewPartList>(File.ReadAllText(jsonPath)).parts;
+        var layersFile = JsonUtility.FromJson<LayersFile>(File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/layers/layers.json")));
+        int canvasH = layersFile.canvas[1];
+        var factory = new SpriteDataProviderFactories();
+        factory.Init();
+        var dp = factory.GetSpriteEditorDataProviderFromObject(AssetImporter.GetAtPath(psbPath));
+        dp.InitSpriteEditorDataProvider();
+        var charProvider = dp.GetDataProvider<ICharacterDataProvider>();
+        var boneProvider = dp.GetDataProvider<ISpriteBoneDataProvider>();
+        var meshProvider = dp.GetDataProvider<ISpriteMeshDataProvider>();
+        var rects = dp.GetSpriteRects();
+        CharacterData cd = charProvider.GetCharacterData();
+        var cb = cd.bones;
+
+        // character-space (pixels, y up) world transform of every bone
+        var wPos = new Vector2[cb.Length]; var wRot = new float[cb.Length];
+        for (int i = 0; i < cb.Length; ++i)
+        {
+            float local = cb[i].rotation.eulerAngles.z;
+            if (cb[i].parentId < 0) { wPos[i] = cb[i].position; wRot[i] = local; }
+            else
+            {
+                int p = cb[i].parentId; // parents always come before children
+                wPos[i] = wPos[p] + (Vector2)(Quaternion.Euler(0, 0, wRot[p]) * (Vector2)cb[i].position);
+                wRot[i] = wRot[p] + local;
+            }
+        }
+
+        var log = new List<string>();
+        foreach (var np in list)
+        {
+            var rect = rects.FirstOrDefault(r => r.name == np.name);
+            if (rect == null) { log.Add(np.name + ": sprite not found in PSB"); continue; }
+            int pi = Array.FindIndex(cd.parts, x => x.spriteId == rect.spriteID.ToString());
+            var part = cd.parts[pi];
+            int[] subset = np.bones.Select(n =>
+            {
+                int i = Array.FindIndex(cb, b => b.name == n);
+                if (i < 0) throw new Exception("Unknown bone " + n + " for " + np.name);
+                return i;
+            }).OrderBy(i => i).ToArray();
+            part.bones = subset;
+            cd.parts[pi] = part;
+            Vector2 partPos = part.spritePosition.position;
+
+            var spriteBones = new List<SpriteBone>();
+            foreach (int gi in subset)
+            {
+                var b = cb[gi];
+                int lp = b.parentId >= 0 ? Array.IndexOf(subset, b.parentId) : -1;
+                if (lp < 0) { b.position = new Vector3(wPos[gi].x - partPos.x, wPos[gi].y - partPos.y, b.position.z); b.rotation = Quaternion.Euler(0, 0, wRot[gi]); }
+                b.parentId = lp;
+                spriteBones.Add(b);
+            }
+            boneProvider.SetBones(rect.spriteID, spriteBones);
+
+            var layer = layersFile.layers.First(l => l.name == np.name + ".png");
+            var tex = new Texture2D(2, 2);
+            tex.LoadImage(File.ReadAllBytes(Path.Combine(ProjectRoot, "ArtSource/layers", layer.file)));
+            BuildGridMesh(tex, canvasH, partPos, (int)rect.rect.width, (int)rect.rect.height, out var verts, out var indices, out var edges);
+            UnityEngine.Object.DestroyImmediate(tex);
+
+            var segs = subset.Select(gi => new Bone { head = wPos[gi], tail = wPos[gi] + (Vector2)(Quaternion.Euler(0, 0, wRot[gi]) * new Vector2(cb[gi].length, 0)) }).ToList();
+            var all = Enumerable.Range(0, segs.Count).ToArray();
+            var vmeta = new Vertex2DMetaData[verts.Count];
+            for (int v = 0; v < verts.Count; ++v)
+            {
+                vmeta[v].position = verts[v];
+                vmeta[v].boneWeight = subset.Length == 1 ? new BoneWeight { boneIndex0 = 0, weight0 = 1f } : Weigh(segs, all, verts[v] + partPos);
+            }
+            meshProvider.SetVertices(rect.spriteID, vmeta);
+            meshProvider.SetIndices(rect.spriteID, indices.ToArray());
+            meshProvider.SetEdges(rect.spriteID, edges.ToArray());
+            log.Add($"{np.name}: bones=[{string.Join(",", np.bones)}] verts={verts.Count}");
+        }
+        charProvider.SetCharacterData(cd);
+        dp.Apply();
+        AssetDatabase.ImportAsset(psbPath, ImportAssetOptions.ForceUpdate);
+        return string.Join("\n", log);
+    }
+
     // Makes one sprite rigid: every vertex 100% on boneName. Only that sprite's weights change;
     // bone positions, other sprites and meshes are left as they are (safe after Skinning Editor edits).
     public static string SetRigid(string psbPath, string spriteName, string boneName)

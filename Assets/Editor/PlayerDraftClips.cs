@@ -185,6 +185,7 @@ public static class PlayerDraftClips
             }
             var jumpClips = MakeJumpClips(animRoot);
             EnsureJumpStates(AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath), jumpClips);
+            EnsureDashSlideStates(AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath), MakeDashSlideClips(animRoot));
             var controller = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(ControllerPath);
             if (animator.runtimeAnimatorController == null)
             {
@@ -445,6 +446,95 @@ public static class PlayerDraftClips
         if (walk != null) { var t = sLand.AddTransition(walk); t.hasExitTime = true; t.exitTime = 0.35f; t.duration = 0.08f; t.AddCondition(AnimatorConditionMode.Greater, 0.1f, "Speed"); }
         EditorUtility.SetDirty(ctrl);
         Debug.Log("[PlayerDraftClips] Jump: JumpStart -> Air (Speed x AirVel blend) -> Land in " + ControllerPath);
+    }
+
+    // ---------------- Dash & slide (draft) ----------------
+    // Dash pose from the ZeggyGames platformer template DASH (https://zegley.itch.io/2d-platformermetroidvania-asset-pack):
+    // body ~40 deg forward, lead leg bent forward-down, trail leg straight back, both arms swept back, hair/coat streaming.
+    // Slide: the rig drops into a reclined sit (in/out clips); while sliding the hand-drawn slide sprite is shown
+    // (Assets/Character/Slide, from ArtSource/NAI_V5_rig_v3/slide_frames/slide_dash_reclined_loop_*).
+    static Dictionary<string, AnimationClip> MakeDashSlideClips(Transform animRoot)
+    {
+        var idle0 = Flat(P(0f, ("spine", -4f), ("neck", 2f), ("head", 2f), ("arm_near_upper", 4f), ("arm_far_upper", 4f),
+            ("leg_rear_upper", 0f), ("leg_rear_lower", 0f), ("leg_front_upper", 0f), ("leg_front_lower", 0f)));
+
+        // References: ZeggyGames DASH, deviltearbasil female sidescroller DASH, anime dash pose notes.
+        // Whole body leans ~38 deg forward with the head going with it; trail (rear) leg straight back in line with the
+        // body; lead (front) knee bent with the foot under the hips; arms low: near arm swept back along the body,
+        // far arm bent forward (opposite to the legs). The first draft raised both arms high behind and kicked the
+        // rear leg up horizontally, which read as falling backwards.
+        var dash = Lean(P(0f, ("leg_front_upper", 88f), ("leg_front_lower", -128f), ("foot_front", 5f),
+            ("leg_rear_upper", -22f), ("leg_rear_lower", -6f), ("foot_rear", -25f),
+            // head lifted so she looks ahead along the dash (body is ~55 deg forward)
+            ("neck", 12f), ("head", 26f),
+            ("arm_near_upper", -40f), ("arm_near_fore", 25f), ("arm_far_upper", 35f), ("arm_far_fore", 75f),
+            ("hair_back_1", -20f), ("hair_back_2", -14f), ("hair_back_3", -12f), ("hair_front_near_1", -12f), ("hair_front_far_1", -12f),
+            // coat and skirt stay together (both hang from the pelvis): a little trailing only, no opposite swings
+            ("coat_back_1", -12f), ("coat_back_2", -10f), ("coat_front_1", -4f), ("coat_front_2", -4f), ("skirt", -2f)), -30f, -25f, false);
+        var recover = Lean(P(0f, ("leg_front_upper", 15f), ("leg_front_lower", -25f), ("leg_rear_upper", -20f), ("leg_rear_lower", -15f),
+            ("neck", 4f), ("head", 8f),
+            ("arm_near_upper", -30f), ("arm_near_fore", 15f), ("arm_far_upper", 20f), ("arm_far_fore", 20f),
+            ("hair_back_1", -10f), ("hair_back_2", -6f), ("coat_back_1", -12f), ("coat_front_1", -5f), ("skirt", -3f)), -8f, -8f, false);
+        // slide entry/exit pose matches the slide art (slide_kneeup_4frames.webp): reclined sit, near leg stretched
+        // forward, far knee up, far hand on the cap, near hand on the floor behind
+        // pelvis tips back 45 deg (it also carries the legs): near leg ends ~horizontal, far knee points up
+        var slideLow = Lean(P(0f, ("leg_front_upper", 55f), ("leg_front_lower", -8f), ("leg_rear_upper", 95f), ("leg_rear_lower", -120f),
+            ("neck", -6f), ("head", -8f),
+            ("arm_far_upper", 150f), ("arm_far_fore", 95f), ("arm_near_upper", -55f), ("arm_near_fore", 5f),
+            ("hair_back_1", -18f), ("hair_back_2", -12f), ("coat_back_1", -20f), ("coat_front_1", 10f), ("skirt", 6f)), 45f, 15f, false);
+
+        var flutter = new Dictionary<string, Wave>
+        {
+            ["hair_back_2"] = p => Flutter(p, 3f, 0.2f, 2f), ["hair_back_3"] = p => Flutter(p, 5f, 0.35f, 2f),
+            ["coat_back_2"] = p => Flutter(p, 4f, 0.3f, 2f), ["coat_front_2"] = p => Flutter(p, 3f, 0.5f, 2f),
+        };
+        return new Dictionary<string, AnimationClip>
+        {
+            ["Dash"] = MakeClip("Player_Dash_Draft", animRoot, PoseTracks(new[] { (0f, dash), (1f, dash) }, flutter, solveBob: true, animRoot: animRoot), 0.3f, 9),
+            ["DashEnd"] = MakeClip("Player_DashEnd_Draft", animRoot, PoseTracks(new[] { (0f, dash), (0.4f, recover), (1f, idle0) }, solveBob: true, animRoot: animRoot), 0.18f, 6, loop: false),
+            ["SlideIn"] = MakeClip("Player_SlideIn_Draft", animRoot, PoseTracks(new[] { (0f, idle0), (1f, slideLow) }, solveBob: true, animRoot: animRoot), 0.08f, 3, loop: false),
+            ["SlideOut"] = MakeClip("Player_SlideOut_Draft", animRoot, PoseTracks(new[] { (0f, slideLow), (1f, idle0) }, solveBob: true, animRoot: animRoot), 0.16f, 5, loop: false),
+        };
+    }
+
+    // Parameters: Dashing (bool), Sliding (bool). States: Dash -> DashEnd -> Idle/Run/Air, SlideIn (holds) -> SlideOut -> Idle/Run.
+    static void EnsureDashSlideStates(AnimatorController ctrl, Dictionary<string, AnimationClip> clips)
+    {
+        void Param(string n, AnimatorControllerParameterType t) { if (ctrl.parameters.All(p => p.name != n)) ctrl.AddParameter(n, t); }
+        Param("Dashing", AnimatorControllerParameterType.Bool);
+        Param("Sliding", AnimatorControllerParameterType.Bool);
+        var sm = ctrl.layers[0].stateMachine;
+        AnimatorState Get(string n) => sm.states.Select(s => s.state).FirstOrDefault(s => s.name == n);
+        if (Get("Dash") != null)
+        {
+            Get("Dash").motion = clips["Dash"]; Get("DashEnd").motion = clips["DashEnd"];
+            Get("SlideIn").motion = clips["SlideIn"]; Get("SlideOut").motion = clips["SlideOut"];
+            return;
+        }
+        var idle = Get("Idle"); var run = Get("Run"); var air = Get(AirStateName);
+        var sDash = sm.AddState("Dash"); sDash.motion = clips["Dash"];
+        var sDashEnd = sm.AddState("DashEnd"); sDashEnd.motion = clips["DashEnd"];
+        var sSlideIn = sm.AddState("SlideIn"); sSlideIn.motion = clips["SlideIn"];
+        var sSlideOut = sm.AddState("SlideOut"); sSlideOut.motion = clips["SlideOut"];
+
+        var a1 = sm.AddAnyStateTransition(sDash); a1.hasExitTime = false; a1.duration = 0.02f; a1.canTransitionToSelf = false;
+        a1.AddCondition(AnimatorConditionMode.If, 0, "Dashing");
+        var a2 = sm.AddAnyStateTransition(sSlideIn); a2.hasExitTime = false; a2.duration = 0.02f; a2.canTransitionToSelf = false;
+        a2.AddCondition(AnimatorConditionMode.If, 0, "Sliding");
+        // keep the any-state "walked off a ledge -> Air" from cutting a dash or slide short
+        foreach (var t in sm.anyStateTransitions.Where(t => t.destinationState == air))
+            foreach (var n in new[] { "Dashing", "Sliding" })
+                if (t.conditions.All(c => c.parameter != n)) t.AddCondition(AnimatorConditionMode.IfNot, 0, n);
+
+        var d1 = sDash.AddTransition(sDashEnd); d1.hasExitTime = false; d1.duration = 0.02f; d1.AddCondition(AnimatorConditionMode.IfNot, 0, "Dashing");
+        var d2 = sDashEnd.AddTransition(air); d2.hasExitTime = false; d2.duration = 0.06f; d2.AddCondition(AnimatorConditionMode.IfNot, 0, "Grounded");
+        var d3 = sDashEnd.AddTransition(run); d3.hasExitTime = true; d3.exitTime = 0.4f; d3.duration = 0.08f; d3.AddCondition(AnimatorConditionMode.Greater, 3.5f, "Speed");
+        var d4 = sDashEnd.AddTransition(idle); d4.hasExitTime = true; d4.exitTime = 1f; d4.duration = 0.06f;
+        var s1 = sSlideIn.AddTransition(sSlideOut); s1.hasExitTime = false; s1.duration = 0.02f; s1.AddCondition(AnimatorConditionMode.IfNot, 0, "Sliding");
+        var s2 = sSlideOut.AddTransition(run); s2.hasExitTime = true; s2.exitTime = 0.5f; s2.duration = 0.08f; s2.AddCondition(AnimatorConditionMode.Greater, 3.5f, "Speed");
+        var s3 = sSlideOut.AddTransition(idle); s3.hasExitTime = true; s3.exitTime = 1f; s3.duration = 0.06f;
+        EditorUtility.SetDirty(ctrl);
+        Debug.Log("[PlayerDraftClips] Added Dash/DashEnd/SlideIn/SlideOut to " + ControllerPath);
     }
 
     static AnimationClip MakeClip(string name, Transform animRoot, List<Track> tracks, float duration, int samples, bool loop = true)

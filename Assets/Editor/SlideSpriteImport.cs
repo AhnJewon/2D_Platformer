@@ -1,0 +1,28 @@
+using UnityEditor;
+using UnityEngine;
+
+// Import settings for the hand-drawn slide frames (Assets/Character/Slide/*.png): same scale as the rig (400 px/unit)
+// and a pivot under the hips, so swapping between the rig and the sprite keeps her in place.
+// Source: the original pose baseball_slide_sketch_pose_rgba.png (1376x768, Tools/import_slide_frames.py). It is
+// ~0.864x the rig's pixel scale (cap ~270 px wide vs 317 px on the rig), so 400 * 0.864 = 346 px/unit keeps her size.
+// Pivot: under the hips, minus the rig's hip offset -> x = 682 px; soles 72 px above the bottom and the rig root sits
+// 0.08 units (28 px) under the soles -> y = 43 px. (The half-size 4-frame sheet would use 173 px/unit, pivot 341,21.)
+public class SlideSpriteImport : AssetPostprocessor
+{
+    void OnPreprocessTexture()
+    {
+        if (!assetPath.StartsWith("Assets/Character/Slide/")) return;
+        var ti = (TextureImporter)assetImporter;
+        ti.textureType = TextureImporterType.Sprite;
+        ti.spriteImportMode = SpriteImportMode.Single;
+        ti.spritePixelsPerUnit = 346f;
+        ti.mipmapEnabled = false;
+        ti.alphaIsTransparency = true;
+        var s = new TextureImporterSettings();
+        ti.ReadTextureSettings(s);
+        s.spriteAlignment = (int)SpriteAlignment.Custom;
+        s.spritePivot = new Vector2(682f / 1376f, 43f / 768f);
+        s.spriteMeshType = SpriteMeshType.Tight;
+        ti.SetTextureSettings(s);
+    }
+}

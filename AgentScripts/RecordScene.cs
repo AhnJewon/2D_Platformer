@@ -11,7 +11,7 @@ public static class RecordScene {
     lr.positionCount = 2; lr.SetPositions(new[] { new Vector3(-2, 0.08f, 0), new Vector3(2, 0.08f, 0) }); lr.widthMultiplier = 0.01f;
     lr.material = new Material(Shader.Find("Sprites/Default")); lr.startColor = lr.endColor = new Color(0.3f, 0.3f, 0.35f);
     var rec = cam.gameObject.AddComponent<ClipRecorder>(); rec.target = player;
-    rec.clips = new[] { "Idle", "Walk", "Run", "JumpStart", "JumpRise", "JumpFall", "Land" }.Select(n => AssetDatabase.LoadAssetAtPath<AnimationClip>($"Assets/Character/Animations/Draft/Player_{n}_Draft.anim")).ToArray();
+    rec.clips = new[] { "Dash", "DashEnd" }.Select(n => AssetDatabase.LoadAssetAtPath<AnimationClip>($"Assets/Character/Animations/Draft/Player_{n}_Draft.anim")).ToArray();
     EditorSceneManager.SaveScene(scene, "Assets/Scenes/ClipRecording.unity");
     return "ok";
   }

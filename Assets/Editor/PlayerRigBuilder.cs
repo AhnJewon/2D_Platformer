@@ -89,6 +89,29 @@ public static class PlayerRigBuilder
         return string.Join("\n", log);
     }
 
+    // Makes one sprite rigid: every vertex 100% on boneName. Only that sprite's weights change;
+    // bone positions, other sprites and meshes are left as they are (safe after Skinning Editor edits).
+    public static string SetRigid(string psbPath, string spriteName, string boneName)
+    {
+        var factory = new SpriteDataProviderFactories();
+        factory.Init();
+        var dp = factory.GetSpriteEditorDataProviderFromObject(AssetImporter.GetAtPath(psbPath));
+        dp.InitSpriteEditorDataProvider();
+        var rect = dp.GetSpriteRects().FirstOrDefault(r => r.name == spriteName);
+        if (rect == null) return "sprite not found: " + spriteName;
+        var bones = dp.GetDataProvider<ISpriteBoneDataProvider>().GetBones(rect.spriteID);
+        int bi = bones.FindIndex(b => b.name == boneName);
+        if (bi < 0) return $"{spriteName} is not bound to bone {boneName} (bones: {string.Join(",", bones.Select(b => b.name))})";
+        var meshProvider = dp.GetDataProvider<ISpriteMeshDataProvider>();
+        var verts = meshProvider.GetVertices(rect.spriteID);
+        for (int i = 0; i < verts.Length; ++i)
+            verts[i].boneWeight = new BoneWeight { boneIndex0 = bi, weight0 = 1f };
+        meshProvider.SetVertices(rect.spriteID, verts);
+        dp.Apply();
+        AssetDatabase.ImportAsset(psbPath, ImportAssetOptions.ForceUpdate);
+        return $"{spriteName}: {verts.Length} vertices -> 100% {boneName}";
+    }
+
     public static void BuildDraftAt(string psbPath, bool createPrefab)
     {
         string layoutJson = File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/bone_layout.json"));

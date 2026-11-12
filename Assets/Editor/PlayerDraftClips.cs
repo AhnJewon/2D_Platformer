@@ -26,8 +26,18 @@ public static class PlayerDraftClips
     static float Pos(float x) => Mathf.Max(0f, x);
 
     [MenuItem("Tools/Player Rig/Generate Draft Clips (skip existing)")]
-    public static void Generate()
+    public static void Generate() => Generate(false);
+
+    // Rewrites the curves of the existing *_Draft clips in place (same asset/GUID) from the CURRENT bind pose.
+    // Use after moving joints in the Skinning Editor. Never touches clips that are not *_Draft.
+    [MenuItem("Tools/Player Rig/Regenerate Draft Clips (overwrites *_Draft)")]
+    public static void RegenerateDrafts() => Generate(true);
+
+    static bool s_Overwrite;
+
+    public static void Generate(bool overwriteDrafts)
     {
+        s_Overwrite = overwriteDrafts;
         Directory.CreateDirectory(ClipDir);
 
         var idle = new List<Track>
@@ -135,9 +145,10 @@ public static class PlayerDraftClips
     {
         string path = $"{ClipDir}/{name}.anim";
         var existing = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
-        if (existing != null) { Debug.Log("[PlayerDraftClips] Kept existing " + path); return existing; }
+        if (existing != null && !s_Overwrite) { Debug.Log("[PlayerDraftClips] Kept existing " + path); return existing; }
 
-        var clip = new AnimationClip { name = name, frameRate = 30 };
+        var clip = existing ?? new AnimationClip { name = name, frameRate = 30 };
+        clip.ClearCurves();
         var bones = animRoot.GetComponentsInChildren<Transform>(true);
         foreach (var tr in tracks)
         {
@@ -163,7 +174,7 @@ public static class PlayerDraftClips
         var settings = AnimationUtility.GetAnimationClipSettings(clip);
         settings.loopTime = true;
         AnimationUtility.SetAnimationClipSettings(clip, settings);
-        AssetDatabase.CreateAsset(clip, path);
+        if (existing == null) AssetDatabase.CreateAsset(clip, path); else EditorUtility.SetDirty(clip);
         Debug.Log("[PlayerDraftClips] Created " + path);
         return clip;
     }

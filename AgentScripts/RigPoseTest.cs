@@ -9,12 +9,12 @@ public static class RigPoseTest {
     var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Character/Player.prefab");
     var a = (GameObject)PrefabUtility.InstantiatePrefab(prefab); a.name = "Player_BindPose"; a.transform.position = new Vector3(-1.4f, 0, 0);
     var b = (GameObject)PrefabUtility.InstantiatePrefab(prefab); b.name = "Player_PoseTest"; b.transform.position = new Vector3(1.4f, 0, 0);
-    var r = b.transform;
+    var r = b.transform; b.GetComponentInChildren<Animator>().enabled = false; a.GetComponentInChildren<Animator>().enabled = false;
     Rot(r, "arm_near_upper", 35); Rot(r, "arm_near_fore", 45);
     Rot(r, "arm_far_upper", -30); Rot(r, "arm_far_fore", -20);
     Rot(r, "leg_front_upper", -30); Rot(r, "leg_front_lower", 35);
     Rot(r, "leg_rear_upper", 25); Rot(r, "leg_rear_lower", 15);
-    Rot(r, "head", 10); Rot(r, "hair_back_2", 12); Rot(r, "hair_back_3", 12);
+    Rot(r, "head", 25); Rot(r, "neck", 6); Rot(r, "hair_back_2", 12); Rot(r, "hair_back_3", 12);
     Rot(r, "coat_back_1", -10); Rot(r, "coat_front_1", 8); Rot(r, "spine", 5);
     EditorSceneManager.SaveScene(scene, "Assets/Scenes/RigTest.unity");
     return "ok";

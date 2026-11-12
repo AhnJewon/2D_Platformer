@@ -25,6 +25,25 @@ public static class PlayerDraftClips
     static float S(float p, float offset = 0) => Mathf.Sin((p + offset) * Mathf.PI * 2f);
     static float Pos(float x) => Mathf.Max(0f, x);
 
+    // Periodic key curve: Keys(phase0, value0, phase1, value1, ...) with phases in [0,1), Catmull-Rom between keys.
+    static Wave Keys(params float[] pv)
+    {
+        int n = pv.Length / 2;
+        float[] t = new float[n], v = new float[n];
+        for (int i = 0; i < n; ++i) { t[i] = pv[2 * i]; v[i] = pv[2 * i + 1]; }
+        return p =>
+        {
+            p = ((p % 1f) + 1f) % 1f;
+            int k = n - 1;
+            for (int i = 0; i < n; ++i) if (t[i] <= p) k = i;
+            int k1 = (k + 1) % n, k0 = (k - 1 + n) % n, k2 = (k + 2) % n;
+            float span = (t[k1] - t[k] + 1f) % 1f; if (span <= 0f) span = 1f;
+            float u = ((p - t[k] + 1f) % 1f) / span;
+            float a = v[k0], b = v[k], c = v[k1], d = v[k2];
+            return 0.5f * (2f * b + (-a + c) * u + (2f * a - 5f * b + 4f * c - d) * u * u + (-a + 3f * b - 3f * c + d) * u * u * u);
+        };
+    }
+
     [MenuItem("Tools/Player Rig/Generate Draft Clips (skip existing)")]
     public static void Generate() => Generate(false);
 
@@ -40,13 +59,31 @@ public static class PlayerDraftClips
         s_Overwrite = overwriteDrafts;
         Directory.CreateDirectory(ClipDir);
 
+        // Joint curves follow gait references (draft values, tune in the Animation Window):
+        //  walk: hip ~ +28 flexion / -12 extension, knee ~15 deg at loading, ~60 deg peak in swing
+        //  run:  hip ~ +50 / -15, knee ~40 deg in stance, ~105 deg peak in swing, trunk leaning forward ~15 deg
+        // Leg phase 0 = that leg's heel contact. The near arm (drawn on top) swings with the FAR (rear) leg,
+        // the far arm with the near (front) leg, as in a real gait.
+        Wave walkHip = Keys(0f, 26f, .12f, 20f, .3f, 6f, .5f, -12f, .6f, -8f, .75f, 14f, .9f, 28f);
+        Wave walkKnee = Keys(0f, 3f, .12f, 15f, .3f, 7f, .48f, 6f, .6f, 38f, .72f, 60f, .85f, 28f, .95f, 6f);
+        Wave runHip = Keys(0f, 30f, .15f, 12f, .35f, -15f, .45f, -8f, .62f, 30f, .8f, 50f, .92f, 40f);
+        Wave runKnee = Keys(0f, 18f, .12f, 40f, .33f, 22f, .5f, 85f, .65f, 105f, .8f, 55f, .93f, 22f);
+        Wave Shift(Wave w, float d) => p => w((p + d) % 1f);
+        // Toe bend at push-off: the toe cap counter-rotates against the shin so it stays flat on the ground
+        // (shin angle = hip - knee), only inside the push-off window [a..d] (full between b and c).
+        float Win(float p, float a, float b, float c, float d) => p < a || p > d ? 0f : p < b ? Mathf.SmoothStep(0f, 1f, (p - a) / (b - a)) : p > c ? Mathf.SmoothStep(1f, 0f, (p - c) / (d - c)) : 1f;
+        Wave WalkToe(float d) => p => { float q = (p + d) % 1f; return Mathf.Clamp(walkKnee(q) - walkHip(q), 0f, 35f) * Win(q, .42f, .5f, .6f, .68f); };
+        Wave RunToe(float d) => p => { float q = (p + d) % 1f; return Mathf.Clamp(runKnee(q) - runHip(q), 0f, 40f) * Win(q, .2f, .26f, .34f, .42f); };
+
         var idle = new List<Track>
         {
-            new Track { bone = "spine", rot = p => 1.2f * S(p) },
-            new Track { bone = "neck", rot = p => -0.6f * S(p, 0.1f) },
-            new Track { bone = "head", rot = p => 1.0f * S(p, 0.15f) },
-            new Track { bone = "arm_near_upper", rot = p => 1.5f * S(p, 0.1f) },
-            new Track { bone = "arm_far_upper", rot = p => 1.5f * S(p, 0.1f) },
+            // The drawing leans the waist back ~9 deg; idle straightens it 4 deg (negative = forward),
+            // and neck/head/arms take it back so the face and hands keep their drawn direction.
+            new Track { bone = "spine", rot = p => -4f + 1.2f * S(p) },
+            new Track { bone = "neck", rot = p => 2f - 0.6f * S(p, 0.1f) },
+            new Track { bone = "head", rot = p => 2f + 1.0f * S(p, 0.15f) },
+            new Track { bone = "arm_near_upper", rot = p => 4f + 1.5f * S(p, 0.1f) },
+            new Track { bone = "arm_far_upper", rot = p => 4f + 1.5f * S(p, 0.1f) },
             new Track { bone = "hair_back_1", rot = p => 1.2f * S(p, 0.25f) },
             new Track { bone = "hair_back_2", rot = p => 1.5f * S(p, 0.35f) },
             new Track { bone = "hair_back_3", rot = p => 2.0f * S(p, 0.45f) },
@@ -57,45 +94,53 @@ public static class PlayerDraftClips
 
         var walk = new List<Track>
         {
-            new Track { bone = "leg_rear_upper", rot = p => 24f * S(p) },
-            new Track { bone = "leg_front_upper", rot = p => -24f * S(p) },
-            new Track { bone = "leg_rear_lower", rot = p => -35f * Pos(S(p, 0.3f)) - 4f },
-            new Track { bone = "leg_front_lower", rot = p => -35f * Pos(-S(p, 0.3f)) - 4f },
-            new Track { bone = "arm_near_upper", rot = p => -16f * S(p) },
-            new Track { bone = "arm_far_upper", rot = p => 16f * S(p) },
-            new Track { bone = "arm_near_fore", rot = p => 8f + 8f * Pos(-S(p)) },
-            new Track { bone = "arm_far_fore", rot = p => 8f + 8f * Pos(S(p)) },
-            new Track { bone = "spine", rot = p => -2f + 1f * S(p * 2f) },
-            new Track { bone = "head", rot = p => 1f * S(p * 2f, 0.25f) },
+            new Track { bone = "leg_rear_upper", rot = walkHip },
+            new Track { bone = "leg_rear_lower", rot = p => -walkKnee(p) },
+            new Track { bone = "leg_front_upper", rot = Shift(walkHip, 0.5f) },
+            new Track { bone = "leg_front_lower", rot = p => -walkKnee((p + 0.5f) % 1f) },
+            new Track { bone = "toe_rear", rot = WalkToe(0f) },
+            new Track { bone = "toe_front", rot = WalkToe(0.5f) },
+            new Track { bone = "arm_near_upper", rot = p => 16f * S(p, 0.2f) },
+            new Track { bone = "arm_far_upper", rot = p => -16f * S(p, 0.2f) },
+            new Track { bone = "arm_near_fore", rot = p => 10f + 10f * Pos(S(p, 0.2f)) },
+            new Track { bone = "arm_far_fore", rot = p => 10f + 10f * Pos(-S(p, 0.2f)) },
+            new Track { bone = "spine", rot = p => -3f + 1f * S(p * 2f, 0.1f) },
+            new Track { bone = "head", rot = p => 2f + 1f * S(p * 2f, 0.35f) },
             new Track { bone = "hair_back_1", rot = p => 2f + 2f * S(p * 2f, 0.2f) },
             new Track { bone = "hair_back_2", rot = p => 3f * S(p * 2f, 0.35f) },
             new Track { bone = "hair_back_3", rot = p => 4f * S(p * 2f, 0.5f) },
             new Track { bone = "coat_back_1", rot = p => -3f + 3f * S(p, 0.25f) },
             new Track { bone = "coat_front_1", rot = p => 3f * S(p, 0.25f) },
             new Track { bone = "skirt", rot = p => 2f * S(p * 2f, 0.2f) },
-            new Track { bone = "hip", bobY = p => 0.012f * S(p * 2f, 0.25f) },
+            // lowest just after each heel contact, highest at passing
+            new Track { bone = "hip", bobY = p => -0.009f * Mathf.Cos((p - 0.12f) * Mathf.PI * 4f) },
         };
 
         var run = new List<Track>
         {
-            new Track { bone = "leg_rear_upper", rot = p => 38f * S(p) + 5f },
-            new Track { bone = "leg_front_upper", rot = p => -38f * S(p) + 5f },
-            new Track { bone = "leg_rear_lower", rot = p => -75f * Pos(S(p, 0.3f)) - 10f },
-            new Track { bone = "leg_front_lower", rot = p => -75f * Pos(-S(p, 0.3f)) - 10f },
-            new Track { bone = "arm_near_upper", rot = p => -35f * S(p) + 5f },
-            new Track { bone = "arm_far_upper", rot = p => 35f * S(p) + 5f },
-            new Track { bone = "arm_near_fore", rot = p => 70f + 10f * S(p) },
-            new Track { bone = "arm_far_fore", rot = p => 70f - 10f * S(p) },
-            new Track { bone = "spine", rot = p => -9f + 1.5f * S(p * 2f) },
-            new Track { bone = "head", rot = p => 5f + 1f * S(p * 2f, 0.25f) },
-            new Track { bone = "hair_back_1", rot = p => 8f + 3f * S(p * 2f, 0.2f) },
-            new Track { bone = "hair_back_2", rot = p => 6f + 4f * S(p * 2f, 0.35f) },
-            new Track { bone = "hair_back_3", rot = p => 6f + 5f * S(p * 2f, 0.5f) },
-            new Track { bone = "coat_back_1", rot = p => 10f + 4f * S(p * 2f, 0.25f) },
+            new Track { bone = "leg_rear_upper", rot = runHip },
+            new Track { bone = "leg_rear_lower", rot = p => -runKnee(p) },
+            new Track { bone = "leg_front_upper", rot = Shift(runHip, 0.5f) },
+            new Track { bone = "leg_front_lower", rot = p => -runKnee((p + 0.5f) % 1f) },
+            new Track { bone = "toe_rear", rot = RunToe(0f) },
+            new Track { bone = "toe_front", rot = RunToe(0.5f) },
+            new Track { bone = "arm_near_upper", rot = p => 5f + 38f * S(p, 0.15f) },
+            new Track { bone = "arm_far_upper", rot = p => 5f - 38f * S(p, 0.15f) },
+            new Track { bone = "arm_near_fore", rot = p => 85f + 10f * S(p, 0.15f) },
+            new Track { bone = "arm_far_fore", rot = p => 85f - 10f * S(p, 0.15f) },
+            // trunk leans forward; head compensates so she still looks ahead
+            new Track { bone = "spine", rot = p => -16f + 1.5f * S(p * 2f, 0.1f) },
+            new Track { bone = "neck", rot = p => 5f },
+            new Track { bone = "head", rot = p => 7f + 1f * S(p * 2f, 0.35f) },
+            new Track { bone = "hair_back_1", rot = p => 10f + 3f * S(p * 2f, 0.2f) },
+            new Track { bone = "hair_back_2", rot = p => 7f + 4f * S(p * 2f, 0.35f) },
+            new Track { bone = "hair_back_3", rot = p => 7f + 5f * S(p * 2f, 0.5f) },
+            new Track { bone = "coat_back_1", rot = p => 12f + 4f * S(p * 2f, 0.25f) },
             new Track { bone = "coat_back_2", rot = p => 6f + 4f * S(p * 2f, 0.4f) },
-            new Track { bone = "coat_front_1", rot = p => 6f + 3f * S(p * 2f, 0.25f) },
-            new Track { bone = "skirt", rot = p => 4f + 3f * S(p * 2f, 0.2f) },
-            new Track { bone = "hip", bobY = p => 0.03f * S(p * 2f, 0.25f) - 0.02f },
+            new Track { bone = "coat_front_1", rot = p => 8f + 3f * S(p * 2f, 0.25f) },
+            new Track { bone = "skirt", rot = p => 5f + 3f * S(p * 2f, 0.2f) },
+            // low on landing (stance), high in the flight phase
+            new Track { bone = "hip", bobY = p => 0.02f * Mathf.Cos((p - 0.42f) * Mathf.PI * 4f) - 0.015f },
         };
 
         var contents = PrefabUtility.LoadPrefabContents(PrefabPath);
@@ -106,8 +151,8 @@ public static class PlayerDraftClips
             var clips = new Dictionary<string, AnimationClip>
             {
                 ["Idle"] = MakeClip("Player_Idle_Draft", animRoot, idle, 2.0f, 8),
-                ["Walk"] = MakeClip("Player_Walk_Draft", animRoot, walk, 1.0f, 16),
-                ["Run"] = MakeClip("Player_Run_Draft", animRoot, run, 0.6f, 16),
+                ["Walk"] = MakeClip("Player_Walk_Draft", animRoot, walk, 1.0f, 24),
+                ["Run"] = MakeClip("Player_Run_Draft", animRoot, run, 0.6f, 20),
             };
 
             if (!File.Exists(ControllerPath))

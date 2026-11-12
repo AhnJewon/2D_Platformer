@@ -1,5 +1,5 @@
 {
- "_note": "Separated limb parts (arm/leg/boot) are rigid: 100% on one bone, no mesh bending. Face, neck and torso are rigid too. Hair, skirt and coat keep mesh deformation; both coat parts (outer back 02a and blue lining 02b) share one bone set so they bend identically and never open a gap. Boots ride on the shin bone. Canvas pixel coords (832x1216, y down). Each bone: head joint -> tail. Draft by agent from rig_spec_filled.json; tune in Skinning Editor.",
+ "_note": "Separated limb parts (arm/leg/boot) are rigid: 100% on one bone, no mesh bending. Face, neck and torso are rigid too. Hair, skirt and coat keep mesh deformation; both coat parts (outer back 02a and blue lining 02b) share one bone set so they bend identically and never open a gap. Boots ride on the shin bone; only the toe cap bends on a toe bone (PlayerRigBuilder.AddToeBone: ball line x / instep y, rear 497/1102, front 453/1118). Canvas pixel coords (832x1216, y down). Each bone: head joint -> tail. Draft by agent from rig_spec_filled.json; tune in Skinning Editor.",
  "bones": [
   {"name":"root","parent":null,"head":[462,1190],"tail":[462,1110]},
   {"name":"hip","parent":"root","head":[468,684],"tail":[466,560]},
@@ -26,8 +26,10 @@
   {"name":"coat_front_2","parent":"coat_front_1","head":[600,745],"tail":[640,960]},
   {"name":"leg_rear_upper","parent":"hip","head":[490,690],"tail":[484,815]},
   {"name":"leg_rear_lower","parent":"leg_rear_upper","head":[484,815],"tail":[472,1085]},
+  {"name":"toe_rear","parent":"leg_rear_lower","head":[497,1178],"tail":[570,1170]},
   {"name":"leg_front_upper","parent":"hip","head":[443,690],"tail":[431,818]},
-  {"name":"leg_front_lower","parent":"leg_front_upper","head":[431,818],"tail":[420,1095]}
+  {"name":"leg_front_lower","parent":"leg_front_upper","head":[431,818],"tail":[420,1095]},
+  {"name":"toe_front","parent":"leg_front_lower","head":[453,1194],"tail":[525,1188]}
  ],
  "parts": {
   "17_cap":["head"], "19_eye_upper_detail":["head"], "20_bangs_front":["head"], "18_eye_main":["head"],
@@ -48,9 +50,9 @@
   "02b_coat_tail_back_extra":["spine","coat_back_1","coat_back_2","coat_front_1","coat_front_2"],
   "04_leg_rear_upper":["leg_rear_upper"],
   "04_leg_rear_lower":["leg_rear_lower"],
-  "06_boot_rear":["leg_rear_lower"],
+  "06_boot_rear":["leg_rear_lower","toe_rear"],
   "05_leg_front_upper":["leg_front_upper"],
   "05_leg_front_lower":["leg_front_lower"],
-  "07_boot_front":["leg_front_lower"]
+  "07_boot_front":["leg_front_lower","toe_front"]
  }
 }

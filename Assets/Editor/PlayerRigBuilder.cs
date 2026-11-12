@@ -219,6 +219,179 @@ public static class PlayerRigBuilder
         return string.Join("\n", log);
     }
 
+    // Moves a joint (the HEAD of boneName) to canvasX/canvasY (pixels, y down) like Skinning Editor "Edit Joints":
+    // the bone's tail and all children stay where they are in the bind pose (so e.g. moving a hip joint keeps
+    // the knee in place); the bone is re-aimed at its old tail. Sprite-space bone data of every sprite that uses
+    // the bone or its direct children is rebuilt from the skeleton. Meshes and weights are not changed.
+    public static string MoveJoint(string psbPath, string boneName, float canvasX, float canvasY)
+    {
+        var factory = new SpriteDataProviderFactories();
+        factory.Init();
+        var dp = factory.GetSpriteEditorDataProviderFromObject(AssetImporter.GetAtPath(psbPath));
+        dp.InitSpriteEditorDataProvider();
+        var charProvider = dp.GetDataProvider<ICharacterDataProvider>();
+        var boneProvider = dp.GetDataProvider<ISpriteBoneDataProvider>();
+        CharacterData cd = charProvider.GetCharacterData();
+        var cb = cd.bones;
+        int canvasH = cd.dimension.y;
+
+        Vector2[] wp; float[] wr;
+        void World()
+        {
+            wp = new Vector2[cb.Length]; wr = new float[cb.Length];
+            for (int i = 0; i < cb.Length; ++i)
+            {
+                float lr = cb[i].rotation.eulerAngles.z;
+                if (cb[i].parentId < 0) { wp[i] = cb[i].position; wr[i] = lr; }
+                else { int p = cb[i].parentId; wp[i] = wp[p] + (Vector2)(Quaternion.Euler(0, 0, wr[p]) * (Vector2)cb[i].position); wr[i] = wr[p] + lr; }
+            }
+        }
+        World();
+        int bi = Array.FindIndex(cb, b => b.name == boneName);
+        if (bi < 0) return "bone not found: " + boneName;
+        var oldHead = wp[bi];
+        var tail = wp[bi] + (Vector2)(Quaternion.Euler(0, 0, wr[bi]) * new Vector2(cb[bi].length, 0));
+        var newHead = new Vector2(canvasX, canvasH - canvasY);
+        var children = Enumerable.Range(0, cb.Length).Where(i => cb[i].parentId == bi).ToArray();
+        var childW = children.ToDictionary(c => c, c => (wp[c], wr[c]));
+
+        float newWorldRot = Mathf.Atan2(tail.y - newHead.y, tail.x - newHead.x) * Mathf.Rad2Deg;
+        var b0 = cb[bi];
+        if (b0.parentId < 0) { b0.position = new Vector3(newHead.x, newHead.y, b0.position.z); b0.rotation = Quaternion.Euler(0, 0, newWorldRot); }
+        else
+        {
+            int p = b0.parentId;
+            Vector2 lp = Quaternion.Euler(0, 0, -wr[p]) * (newHead - wp[p]);
+            b0.position = new Vector3(lp.x, lp.y, b0.position.z);
+            b0.rotation = Quaternion.Euler(0, 0, newWorldRot - wr[p]);
+        }
+        b0.length = (tail - newHead).magnitude;
+        cb[bi] = b0;
+        foreach (int c in children) // keep children where they were
+        {
+            var (cpos, crot) = childW[c];
+            var bc = cb[c];
+            Vector2 lp = Quaternion.Euler(0, 0, -newWorldRot) * (cpos - newHead);
+            bc.position = new Vector3(lp.x, lp.y, bc.position.z);
+            bc.rotation = Quaternion.Euler(0, 0, crot - newWorldRot);
+            cb[c] = bc;
+        }
+        cd.bones = cb;
+        World();
+
+        var touched = new HashSet<int>(children) { bi };
+        var rects = dp.GetSpriteRects();
+        var log = new List<string> { $"{boneName}: head ({oldHead.x:F0},{canvasH - oldHead.y:F0}) -> ({canvasX:F0},{canvasY:F0}), length {b0.length:F0}" };
+        foreach (var part in cd.parts)
+        {
+            if (part.bones == null || !part.bones.Any(touched.Contains)) continue;
+            var rect = rects.FirstOrDefault(r => r.spriteID.ToString() == part.spriteId);
+            if (rect == null) continue;
+            var old = boneProvider.GetBones(rect.spriteID);
+            var sbs = new List<SpriteBone>();
+            for (int k = 0; k < part.bones.Length; ++k)
+            {
+                int gi = part.bones[k];
+                var b = cb[gi];
+                int lp = b.parentId >= 0 ? Array.IndexOf(part.bones, b.parentId) : -1;
+                if (lp < 0) { b.position = new Vector3(wp[gi].x - part.spritePosition.x, wp[gi].y - part.spritePosition.y, b.position.z); b.rotation = Quaternion.Euler(0, 0, wr[gi]); }
+                b.parentId = lp;
+                if (k < old.Count) b.guid = old[k].guid;
+                sbs.Add(b);
+            }
+            boneProvider.SetBones(rect.spriteID, sbs);
+            log.Add("  sprite bones updated: " + rect.name);
+        }
+        charProvider.SetCharacterData(cd);
+        dp.Apply();
+        AssetDatabase.ImportAsset(psbPath, ImportAssetOptions.ForceUpdate);
+        return string.Join("\n", log);
+    }
+
+    // Adds a toe bone (child of parentBone) to a boot and re-skins that boot: everything stays 100% on parentBone
+    // except the toe cap, i.e. vertices in front of the ball line (x > ballX) and below the instep (y > instepY),
+    // which blend onto the toe bone over +-blend pixels. Canvas pixels, y down. The boot mesh is rebuilt finer
+    // (8 px grid) so the bend is smooth. Other sprites and bones are untouched. If the toe bone already exists,
+    // only the boot's weights/mesh are redone.
+    public static string AddToeBone(string psbPath, string bootSprite, string parentBone, string toeName,
+        float headX, float headY, float tailX, float tailY, float ballX, float instepY, float blend)
+    {
+        var layersFile = JsonUtility.FromJson<LayersFile>(File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/layers/layers.json")));
+        var factory = new SpriteDataProviderFactories();
+        factory.Init();
+        var dp = factory.GetSpriteEditorDataProviderFromObject(AssetImporter.GetAtPath(psbPath));
+        dp.InitSpriteEditorDataProvider();
+        var charProvider = dp.GetDataProvider<ICharacterDataProvider>();
+        var boneProvider = dp.GetDataProvider<ISpriteBoneDataProvider>();
+        var meshProvider = dp.GetDataProvider<ISpriteMeshDataProvider>();
+        CharacterData cd = charProvider.GetCharacterData();
+        int H = cd.dimension.y;
+        var cb = cd.bones.ToList();
+
+        Vector2[] wp = null; float[] wr = null;
+        void World()
+        {
+            wp = new Vector2[cb.Count]; wr = new float[cb.Count];
+            for (int i = 0; i < cb.Count; ++i)
+            {
+                float lr = cb[i].rotation.eulerAngles.z;
+                if (cb[i].parentId < 0) { wp[i] = cb[i].position; wr[i] = lr; }
+                else { int p = cb[i].parentId; wp[i] = wp[p] + (Vector2)(Quaternion.Euler(0, 0, wr[p]) * (Vector2)cb[i].position); wr[i] = wr[p] + lr; }
+            }
+        }
+        World();
+        int pi = cb.FindIndex(b => b.name == parentBone);
+        if (pi < 0) return "parent bone not found: " + parentBone;
+        int ti = cb.FindIndex(b => b.name == toeName);
+        var head = new Vector2(headX, H - headY); var tail = new Vector2(tailX, H - tailY);
+        float wrot = Mathf.Atan2(tail.y - head.y, tail.x - head.x) * Mathf.Rad2Deg;
+        Vector2 lpos = Quaternion.Euler(0, 0, -wr[pi]) * (head - wp[pi]);
+        var toe = new SpriteBone
+        {
+            name = toeName, guid = ti >= 0 ? cb[ti].guid : GUID.Generate().ToString(), parentId = pi,
+            position = new Vector3(lpos.x, lpos.y, 0), rotation = Quaternion.Euler(0, 0, wrot - wr[pi]),
+            length = (tail - head).magnitude, color = new Color(1f, 0.6f, 0.1f)
+        };
+        if (ti >= 0) cb[ti] = toe; else { cb.Add(toe); ti = cb.Count - 1; }
+        cd.bones = cb.ToArray();
+        World();
+
+        var rect = dp.GetSpriteRects().First(r => r.name == bootSprite);
+        int partIdx = Array.FindIndex(cd.parts, x => x.spriteId == rect.spriteID.ToString());
+        var part = cd.parts[partIdx];
+        part.bones = new[] { pi, ti };
+        cd.parts[partIdx] = part;
+        Vector2 partPos = part.spritePosition.position;
+        var sb = new List<SpriteBone>();
+        var b0 = cb[pi]; b0.position = new Vector3(wp[pi].x - partPos.x, wp[pi].y - partPos.y, b0.position.z); b0.rotation = Quaternion.Euler(0, 0, wr[pi]); b0.parentId = -1; sb.Add(b0);
+        var b1 = cb[ti]; b1.parentId = 0; sb.Add(b1);
+        boneProvider.SetBones(rect.spriteID, sb);
+
+        var layer = layersFile.layers.First(l => l.name == bootSprite + ".png");
+        var tex = new Texture2D(2, 2);
+        tex.LoadImage(File.ReadAllBytes(Path.Combine(ProjectRoot, "ArtSource/layers", layer.file)));
+        BuildGridMesh(tex, H, partPos, (int)rect.rect.width, (int)rect.rect.height, out var verts, out var indices, out var edges, 8);
+        UnityEngine.Object.DestroyImmediate(tex);
+        float Smooth(float a, float b, float x) { float t = Mathf.Clamp01((x - a) / (b - a)); return t * t * (3f - 2f * t); }
+        var vmeta = new Vertex2DMetaData[verts.Count];
+        int toeVerts = 0;
+        for (int v = 0; v < verts.Count; ++v)
+        {
+            float cx = verts[v].x + partPos.x, cy = H - (verts[v].y + partPos.y);
+            float w = Smooth(ballX - blend, ballX + blend, cx) * Smooth(instepY - blend, instepY + blend, cy);
+            if (w > 0.5f) toeVerts++;
+            vmeta[v].position = verts[v];
+            vmeta[v].boneWeight = new BoneWeight { boneIndex0 = 0, weight0 = 1f - w, boneIndex1 = 1, weight1 = w };
+        }
+        meshProvider.SetVertices(rect.spriteID, vmeta);
+        meshProvider.SetIndices(rect.spriteID, indices.ToArray());
+        meshProvider.SetEdges(rect.spriteID, edges.ToArray());
+        charProvider.SetCharacterData(cd);
+        dp.Apply();
+        AssetDatabase.ImportAsset(psbPath, ImportAssetOptions.ForceUpdate);
+        return $"{bootSprite}: toe bone {toeName} ({headX},{headY})->({tailX},{tailY}) under {parentBone}; {verts.Count} verts, {toeVerts} mostly on the toe";
+    }
+
     // Makes one sprite rigid: every vertex 100% on boneName. Only that sprite's weights change;
     // bone positions, other sprites and meshes are left as they are (safe after Skinning Editor edits).
     public static string SetRigid(string psbPath, string spriteName, string boneName)
@@ -372,9 +545,9 @@ public static class PlayerRigBuilder
 
     // Grid mesh: cells that contain any visible pixel become two triangles. Positions are sprite-local pixels (y up).
     static void BuildGridMesh(Texture2D layerTex, int canvasH, Vector2 partPos, int w, int h,
-        out List<Vector2> verts, out List<int> indices, out List<Vector2Int> edges)
+        out List<Vector2> verts, out List<int> indices, out List<Vector2Int> edges, int cellOverride = 0)
     {
-        int cell = Mathf.Max(w, h) > 400 ? 20 : Mathf.Max(w, h) > 150 ? 14 : 8;
+        int cell = cellOverride > 0 ? cellOverride : Mathf.Max(w, h) > 400 ? 20 : Mathf.Max(w, h) > 150 ? 14 : 8;
         int cx = Mathf.CeilToInt(w / (float)cell), cy = Mathf.CeilToInt(h / (float)cell);
         var pixels = layerTex.GetPixels32(); int tw = layerTex.width; // texture rows are bottom-up already
         bool Filled(int gx, int gy)

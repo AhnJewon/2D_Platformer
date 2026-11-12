@@ -15,7 +15,7 @@ public static class RigPoseTest {
     Rot(r, "leg_front_upper", -30); Rot(r, "leg_front_lower", 35);
     Rot(r, "leg_rear_upper", 25); Rot(r, "leg_rear_lower", 15);
     Rot(r, "head", 25); Rot(r, "neck", 6); Rot(r, "hair_back_2", 12); Rot(r, "hair_back_3", 12);
-    Rot(r, "coat_back_1", -10); Rot(r, "coat_front_1", 8); Rot(r, "spine", 5);
+    Rot(r, "coat_back_1", -14); Rot(r, "coat_front_1", 10); Rot(r, "spine", 5);
     EditorSceneManager.SaveScene(scene, "Assets/Scenes/RigTest.unity");
     return "ok";
   }

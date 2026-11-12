@@ -86,7 +86,48 @@ public static class PlayerRigBuilder
         dp.SetSpriteRects(rects);
         dp.Apply();
         AssetDatabase.ImportAsset(psbPath, ImportAssetOptions.ForceUpdate);
+        // The newly painted area has no mesh yet: rebuild these sprites' meshes over their new pixels.
+        foreach (var g in grown) log.Add(RemeshPart(psbPath, g.name));
         return string.Join("\n", log);
+    }
+
+    // Rebuilds one sprite's grid mesh from its current pixels (ArtSource/layers). Each new vertex copies the
+    // weights of the nearest old vertex, so hand-painted weights carry over approximately; bones are untouched.
+    // Hand-edited mesh topology (vertices/edges you placed yourself) is replaced.
+    public static string RemeshPart(string psbPath, string spriteName)
+    {
+        var layersFile = JsonUtility.FromJson<LayersFile>(File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/layers/layers.json")));
+        var factory = new SpriteDataProviderFactories();
+        factory.Init();
+        var dp = factory.GetSpriteEditorDataProviderFromObject(AssetImporter.GetAtPath(psbPath));
+        dp.InitSpriteEditorDataProvider();
+        var rect = dp.GetSpriteRects().FirstOrDefault(r => r.name == spriteName);
+        if (rect == null) return "remesh: sprite not found: " + spriteName;
+        var cd = dp.GetDataProvider<ICharacterDataProvider>().GetCharacterData();
+        Vector2 partPos = cd.parts.First(x => x.spriteId == rect.spriteID.ToString()).spritePosition.position;
+        var meshProvider = dp.GetDataProvider<ISpriteMeshDataProvider>();
+        var old = meshProvider.GetVertices(rect.spriteID);
+
+        var layer = layersFile.layers.First(l => l.name == spriteName + ".png");
+        var tex = new Texture2D(2, 2);
+        tex.LoadImage(File.ReadAllBytes(Path.Combine(ProjectRoot, "ArtSource/layers", layer.file)));
+        BuildGridMesh(tex, layersFile.canvas[1], partPos, (int)rect.rect.width, (int)rect.rect.height, out var verts, out var indices, out var edges);
+        UnityEngine.Object.DestroyImmediate(tex);
+
+        var vmeta = new Vertex2DMetaData[verts.Count];
+        for (int v = 0; v < verts.Count; ++v)
+        {
+            vmeta[v].position = verts[v];
+            var nearest = old.Length > 0 ? old.OrderBy(o => (o.position - verts[v]).sqrMagnitude).First().boneWeight
+                                         : new BoneWeight { boneIndex0 = 0, weight0 = 1f };
+            vmeta[v].boneWeight = nearest;
+        }
+        meshProvider.SetVertices(rect.spriteID, vmeta);
+        meshProvider.SetIndices(rect.spriteID, indices.ToArray());
+        meshProvider.SetEdges(rect.spriteID, edges.ToArray());
+        dp.Apply();
+        AssetDatabase.ImportAsset(psbPath, ImportAssetOptions.ForceUpdate);
+        return $"{spriteName}: mesh rebuilt over {rect.rect.width}x{rect.rect.height} ({old.Length} -> {verts.Count} vertices, weights from nearest old vertex)";
     }
 
     [Serializable] class NewPart { public string name; public string[] bones; }

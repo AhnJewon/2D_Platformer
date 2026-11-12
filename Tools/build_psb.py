@@ -39,7 +39,12 @@ for l in layers:
     bx0, by0, bx1, by1 = l['bbox']
     if bx0 < x0 or by0 < y0 or bx1 > x1 or by1 > y1:
         raise SystemExit('%s: content %s is outside its locked bounds %s' % (stem(l), l['bbox'], [x0, y0, x1, y1]))
-    a = np.asarray(im)[y0:y1, x0:x1]
+    a = np.asarray(im)[y0:y1, x0:x1].copy()
+    # Unity's packer trims fully transparent borders, which would move the sprite away from its locked rect
+    # (and from the mesh/bones made for it) when a part is repainted smaller. An invisible pixel
+    # (alpha 1/255) in each empty corner keeps the trimmed size equal to the locked rect.
+    for cy, cx in ((0, 0), (0, -1), (-1, 0), (-1, -1)):
+        if a[cy, cx, 3] == 0: a[cy, cx] = (0, 0, 0, 1)
     name = stem(l).encode('ascii')
     planes = [(-1, a[..., 3]), (0, a[..., 0]), (1, a[..., 1]), (2, a[..., 2])]
     r = struct.pack('>iiiiH', y0, x0, y1, x1, 4)

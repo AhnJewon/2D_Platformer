@@ -1,5 +1,5 @@
 {
- "_note": "Separated limb parts (arm/leg/boot) are rigid: 100% on one bone, no mesh bending. Hair/coat/skirt/torso keep multi-bone mesh deformation. Boots ride on the shin bone. Canvas pixel coords (832x1216, y down). Each bone: head joint -> tail. Draft by agent from rig_spec_filled.json; tune in Skinning Editor.",
+ "_note": "Separated limb parts (arm/leg/boot) are rigid: 100% on one bone, no mesh bending. Face, neck and torso are rigid too. Hair, skirt and coat keep mesh deformation; both coat parts (outer back 02a and blue lining 02b) share one bone set so they bend identically and never open a gap. Boots ride on the shin bone. Canvas pixel coords (832x1216, y down). Each bone: head joint -> tail. Draft by agent from rig_spec_filled.json; tune in Skinning Editor.",
  "bones": [
   {"name":"root","parent":null,"head":[462,1190],"tail":[462,1110]},
   {"name":"hip","parent":"root","head":[468,684],"tail":[466,560]},
@@ -42,10 +42,10 @@
   "10a_arm_far_upper":["arm_far_upper"],
   "10b_arm_far_forearm":["arm_far_fore"],
   "10c_arm_far_hand":["arm_far_hand"],
-  "09a_torso_main":["hip","spine","neck"], "09b_torso_extra":["hip","spine","neck"], "09c_torso_patch":["hip","spine"],
+  "09a_torso_main":["spine"], "09b_torso_extra":["spine"], "09c_torso_patch":["spine"],
   "08_skirt":["hip","skirt"],
-  "02a_coat_tail_back_main":["spine","coat_back_1","coat_back_2"],
-  "02b_coat_tail_back_extra":["spine","coat_front_1","coat_front_2"],
+  "02a_coat_tail_back_main":["spine","coat_back_1","coat_back_2","coat_front_1","coat_front_2"],
+  "02b_coat_tail_back_extra":["spine","coat_back_1","coat_back_2","coat_front_1","coat_front_2"],
   "04_leg_rear_upper":["leg_rear_upper"],
   "04_leg_rear_lower":["leg_rear_lower"],
   "06_boot_rear":["leg_rear_lower"],

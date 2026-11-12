@@ -16,8 +16,8 @@ What it does
     locked rects (ArtSource/layer_bounds.json), then asks the open Unity Editor to reimport it.
 Unity matches layers by name, so each sprite keeps its bones, mesh and weights.
 If a part was painted OUTSIDE its locked rect, the rect grows: the script enlarges that sprite and shifts its existing
-mesh/bones so your skinning stays in place (PlayerRigBuilder.RefitGrownParts). The newly painted area has no mesh
-yet, so it is not drawn: extend that sprite's mesh in the Skinning Editor.
+mesh/bones so your skinning stays in place, then rebuilds that sprite's mesh over the new pixels with weights copied
+from the nearest old vertex (PlayerRigBuilder.RefitGrownParts / RemeshPart). A hand-made mesh topology is replaced.
 """
 import argparse, datetime, json, os, shutil, subprocess, sys, tempfile
 import numpy as np
@@ -128,7 +128,7 @@ def main(argv=None):
         removed = sorted(set(old) - set(order))
         if removed: print('removed parts:', ', '.join(removed))
         for n, lb, nb in grown:
-            print('RECT GROWN  %s %s -> %s : extend this sprite\'s mesh in the Skinning Editor afterwards' % (n, lb, nb))
+            print('RECT GROWN  %s %s -> %s : its mesh is rebuilt over the new area (weights from the nearest old vertex)' % (n, lb, nb))
         if not changed and not removed:
             print('Nothing to update.'); return
         if a.dry_run:

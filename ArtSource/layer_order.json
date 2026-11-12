@@ -1,0 +1,33 @@
+{
+ "_note": "Top-to-bottom draw order for Player.psb. Overrides the XCF order: near arm is drawn in front of everything (cap, eyes, side hair, ear). Names without .png.",
+ "order": [
+  "11_arm_near_upper",
+  "12_arm_near_forearm",
+  "13_hand_near",
+  "17_cap",
+  "19_eye_upper_detail",
+  "20_bangs_front",
+  "18_eye_main",
+  "16_hair_front_near",
+  "15_ear",
+  "02a_coat_tail_back_main",
+  "09c_torso_patch",
+  "09b_torso_extra",
+  "09a_torso_main",
+  "01a_hair_back_main",
+  "15_head_face",
+  "08_skirt",
+  "07_boot_front",
+  "05_leg_front_upper",
+  "05_leg_front_lower",
+  "06_boot_rear",
+  "04_leg_rear_upper",
+  "04_leg_rear_lower",
+  "02b_coat_tail_back_extra",
+  "14_hair_front_far",
+  "10a_arm_far_upper",
+  "10b_arm_far_forearm",
+  "10c_arm_far_hand",
+  "01b_hair_back_segment2"
+ ]
+}

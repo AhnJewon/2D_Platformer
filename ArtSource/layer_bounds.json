@@ -1,0 +1,173 @@
+{
+ "_note": "Locked layer rects [x0,y0,x1,y1] (canvas px, y down) used for every Player.psb build so Unity sprite rects stay stable. update_parts.py grows a rect only when a part is painted outside it.",
+ "bounds": {
+  "17_cap": [
+   288,
+   22,
+   606,
+   188
+  ],
+  "19_eye_upper_detail": [
+   478,
+   175,
+   529,
+   220
+  ],
+  "20_bangs_front": [
+   465,
+   130,
+   566,
+   222
+  ],
+  "18_eye_main": [
+   452,
+   190,
+   529,
+   247
+  ],
+  "16_hair_front_near": [
+   423,
+   138,
+   508,
+   490
+  ],
+  "15_ear": [
+   396,
+   196,
+   428,
+   258
+  ],
+  "11_arm_near_upper": [
+   368,
+   344,
+   444,
+   505
+  ],
+  "12_arm_near_forearm": [
+   357,
+   459,
+   454,
+   669
+  ],
+  "13_hand_near": [
+   361,
+   653,
+   460,
+   739
+  ],
+  "02a_coat_tail_back_main": [
+   184,
+   489,
+   501,
+   973
+  ],
+  "09c_torso_patch": [
+   437,
+   450,
+   556,
+   565
+  ],
+  "09b_torso_extra": [
+   418,
+   331,
+   468,
+   520
+  ],
+  "09a_torso_main": [
+   368,
+   290,
+   557,
+   565
+  ],
+  "01a_hair_back_main": [
+   76,
+   133,
+   447,
+   861
+  ],
+  "15_head_face": [
+   405,
+   143,
+   540,
+   306
+  ],
+  "08_skirt": [
+   398,
+   503,
+   590,
+   692
+  ],
+  "07_boot_front": [
+   337,
+   942,
+   528,
+   1200
+  ],
+  "05_leg_front_upper": [
+   393,
+   645,
+   501,
+   828
+  ],
+  "05_leg_front_lower": [
+   369,
+   783,
+   463,
+   975
+  ],
+  "06_boot_rear": [
+   380,
+   921,
+   574,
+   1192
+  ],
+  "04_leg_rear_upper": [
+   427,
+   642,
+   545,
+   822
+  ],
+  "04_leg_rear_lower": [
+   409,
+   780,
+   505,
+   973
+  ],
+  "02b_coat_tail_back_extra": [
+   287,
+   494,
+   655,
+   967
+  ],
+  "14_hair_front_far": [
+   495,
+   200,
+   574,
+   487
+  ],
+  "10a_arm_far_upper": [
+   470,
+   361,
+   567,
+   515
+  ],
+  "10b_arm_far_forearm": [
+   490,
+   455,
+   614,
+   671
+  ],
+  "10c_arm_far_hand": [
+   536,
+   628,
+   627,
+   725
+  ],
+  "01b_hair_back_segment2": [
+   89,
+   155,
+   519,
+   861
+  ]
+ }
+}

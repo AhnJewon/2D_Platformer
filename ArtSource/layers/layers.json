@@ -1,0 +1,722 @@
+{
+ "canvas": [
+  832,
+  1216
+ ],
+ "layers": [
+  {
+   "index": 0,
+   "name": "17_cap.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L00.png",
+   "bbox": [
+    288,
+    22,
+    606,
+    188
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 1,
+   "name": "19_eye_upper_detail.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L01.png",
+   "bbox": [
+    478,
+    175,
+    529,
+    220
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 2,
+   "name": "20_bangs_front.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L02.png",
+   "bbox": [
+    465,
+    130,
+    566,
+    222
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 3,
+   "name": "18_eye_main.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L03.png",
+   "bbox": [
+    452,
+    190,
+    529,
+    247
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 4,
+   "name": "16_hair_front_near.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L04.png",
+   "bbox": [
+    423,
+    138,
+    508,
+    490
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 5,
+   "name": "15_ear.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L05.png",
+   "bbox": [
+    396,
+    196,
+    428,
+    258
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 6,
+   "name": "11_arm_near_upper.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L06.png",
+   "bbox": [
+    368,
+    344,
+    444,
+    505
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 7,
+   "name": "12_arm_near_forearm.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L07.png",
+   "bbox": [
+    357,
+    459,
+    454,
+    669
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 8,
+   "name": "13_hand_near.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L08.png",
+   "bbox": [
+    361,
+    653,
+    460,
+    739
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 9,
+   "name": "02a_coat_tail_back_main.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L09.png",
+   "bbox": [
+    184,
+    489,
+    501,
+    973
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 10,
+   "name": "레이어 그룹",
+   "visible": true,
+   "group": true,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ]
+  },
+  {
+   "index": 11,
+   "name": "09c_torso_patch.png",
+   "visible": true,
+   "group": false,
+   "path": [
+    10,
+    0
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L11.png",
+   "bbox": [
+    437,
+    450,
+    556,
+    565
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 12,
+   "name": "09b_torso_extra.png",
+   "visible": true,
+   "group": false,
+   "path": [
+    10,
+    1
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L12.png",
+   "bbox": [
+    418,
+    331,
+    468,
+    520
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 13,
+   "name": "09a_torso_main.png",
+   "visible": true,
+   "group": false,
+   "path": [
+    10,
+    2
+   ],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L13.png",
+   "bbox": [
+    368,
+    290,
+    557,
+    565
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 14,
+   "name": "01a_hair_back_main.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L14.png",
+   "bbox": [
+    76,
+    133,
+    447,
+    861
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 15,
+   "name": "15_head_face.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L15.png",
+   "bbox": [
+    405,
+    143,
+    540,
+    306
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 16,
+   "name": "08_skirt.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L16.png",
+   "bbox": [
+    398,
+    503,
+    590,
+    692
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 17,
+   "name": "07_boot_front.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L17.png",
+   "bbox": [
+    337,
+    942,
+    528,
+    1200
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 18,
+   "name": "05_leg_front_upper.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L18.png",
+   "bbox": [
+    393,
+    645,
+    501,
+    828
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 19,
+   "name": "05_leg_front_lower.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L19.png",
+   "bbox": [
+    369,
+    783,
+    463,
+    975
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 20,
+   "name": "06_boot_rear.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L20.png",
+   "bbox": [
+    380,
+    921,
+    574,
+    1192
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 21,
+   "name": "04_leg_rear_upper.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L21.png",
+   "bbox": [
+    427,
+    642,
+    545,
+    822
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 22,
+   "name": "04_leg_rear_lower.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L22.png",
+   "bbox": [
+    409,
+    780,
+    505,
+    973
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 23,
+   "name": "02b_coat_tail_back_extra.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L23.png",
+   "bbox": [
+    287,
+    494,
+    655,
+    967
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 24,
+   "name": "14_hair_front_far.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L24.png",
+   "bbox": [
+    495,
+    200,
+    574,
+    487
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 25,
+   "name": "10a_arm_far_upper.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L25.png",
+   "bbox": [
+    470,
+    361,
+    567,
+    515
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 26,
+   "name": "10b_arm_far_forearm.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L26.png",
+   "bbox": [
+    490,
+    455,
+    614,
+    671
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 27,
+   "name": "10c_arm_far_hand.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L27.png",
+   "bbox": [
+    536,
+    628,
+    627,
+    725
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 28,
+   "name": "01b_hair_back_segment2.png",
+   "visible": true,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L28.png",
+   "bbox": [
+    89,
+    155,
+    519,
+    861
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 29,
+   "name": "REFERENCE - 원본 그림 전체 (항상 켜두기 / 편집금지) 복사",
+   "visible": false,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L29.png",
+   "bbox": [
+    0,
+    0,
+    832,
+    1216
+   ],
+   "bpp": 4
+  },
+  {
+   "index": 30,
+   "name": "UNASSIGNED_review_needed.png",
+   "visible": false,
+   "group": false,
+   "path": [],
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    832,
+    1216
+   ],
+   "file": "L30.png",
+   "bbox": [
+    79,
+    136,
+    655,
+    1201
+   ],
+   "bpp": 4
+  }
+ ]
+}

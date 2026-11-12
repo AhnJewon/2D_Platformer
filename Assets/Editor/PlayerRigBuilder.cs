@@ -392,6 +392,216 @@ public static class PlayerRigBuilder
         return $"{bootSprite}: toe bone {toeName} ({headX},{headY})->({tailX},{tailY}) under {parentBone}; {verts.Count} verts, {toeVerts} mostly on the toe";
     }
 
+    // Lets a skirt react to the legs: the skirt sprite gets the thigh bones added, and below startY its vertices
+    // hand a growing share of their weight (0 at startY .. maxShare at endY, canvas y down) to the nearest thigh(s),
+    // so the hem lifts and swings when a thigh rises. Existing weights (yours) keep the rest of the share.
+    public static string SkirtFollowThighs(string psbPath, string skirtSprite, string[] thighBones, float startY, float endY, float maxShare)
+    {
+        var factory = new SpriteDataProviderFactories();
+        factory.Init();
+        var dp = factory.GetSpriteEditorDataProviderFromObject(AssetImporter.GetAtPath(psbPath));
+        dp.InitSpriteEditorDataProvider();
+        var charProvider = dp.GetDataProvider<ICharacterDataProvider>();
+        var boneProvider = dp.GetDataProvider<ISpriteBoneDataProvider>();
+        var meshProvider = dp.GetDataProvider<ISpriteMeshDataProvider>();
+        CharacterData cd = charProvider.GetCharacterData();
+        var cb = cd.bones; int H = cd.dimension.y;
+        var wp = new Vector2[cb.Length]; var wr = new float[cb.Length];
+        for (int i = 0; i < cb.Length; ++i)
+        {
+            float lr = cb[i].rotation.eulerAngles.z;
+            if (cb[i].parentId < 0) { wp[i] = cb[i].position; wr[i] = lr; }
+            else { int p = cb[i].parentId; wp[i] = wp[p] + (Vector2)(Quaternion.Euler(0, 0, wr[p]) * (Vector2)cb[i].position); wr[i] = wr[p] + lr; }
+        }
+        var rect = dp.GetSpriteRects().First(r => r.name == skirtSprite);
+        int partIdx = Array.FindIndex(cd.parts, x => x.spriteId == rect.spriteID.ToString());
+        var part = cd.parts[partIdx];
+        var oldSubset = part.bones.ToArray();
+        var thighIdx = thighBones.Select(n => Array.FindIndex(cb, b => b.name == n)).ToArray();
+        if (thighIdx.Any(i => i < 0)) return "thigh bone not found";
+        var subset = oldSubset.Union(thighIdx).OrderBy(i => i).ToArray();
+        int Local(int global) => Array.IndexOf(subset, global);
+        part.bones = subset; cd.parts[partIdx] = part;
+        Vector2 partPos = part.spritePosition.position;
+
+        var sbs = new List<SpriteBone>();
+        var oldBones = boneProvider.GetBones(rect.spriteID);
+        foreach (int gi in subset)
+        {
+            var b = cb[gi];
+            int lp = b.parentId >= 0 ? Array.IndexOf(subset, b.parentId) : -1;
+            if (lp < 0) { b.position = new Vector3(wp[gi].x - partPos.x, wp[gi].y - partPos.y, b.position.z); b.rotation = Quaternion.Euler(0, 0, wr[gi]); }
+            b.parentId = lp;
+            int oi = Array.IndexOf(oldSubset, gi); if (oi >= 0 && oi < oldBones.Count) b.guid = oldBones[oi].guid;
+            sbs.Add(b);
+        }
+        boneProvider.SetBones(rect.spriteID, sbs);
+
+        var segs = thighIdx.Select(gi => (a: wp[gi], b: wp[gi] + (Vector2)(Quaternion.Euler(0, 0, wr[gi]) * new Vector2(cb[gi].length, 0)))).ToArray();
+        var verts = meshProvider.GetVertices(rect.spriteID);
+        int touched = 0;
+        for (int v = 0; v < verts.Length; ++v)
+        {
+            var w = new Dictionary<int, float>();
+            var bw = verts[v].boneWeight;
+            void Add(int i, float x) { if (x <= 0f) return; w[i] = (w.TryGetValue(i, out var o) ? o : 0f) + x; }
+            Add(Local(oldSubset[bw.boneIndex0]), bw.weight0); Add(Local(oldSubset[bw.boneIndex1]), bw.weight1);
+            Add(Local(oldSubset[bw.boneIndex2]), bw.weight2); Add(Local(oldSubset[bw.boneIndex3]), bw.weight3);
+            Vector2 p = verts[v].position + partPos;
+            float cy = H - p.y;
+            float t = Mathf.Clamp01((cy - startY) / (endY - startY)); t = t * t * (3f - 2f * t);
+            float share = maxShare * t;
+            if (share > 0f)
+            {
+                foreach (var k in w.Keys.ToList()) w[k] *= 1f - share;
+                var inv = segs.Select(s => 1f / Mathf.Pow(Mathf.Max(DistToSegment(p, s.a, s.b), 4f), 2f)).ToArray();
+                float sum = inv.Sum();
+                for (int k = 0; k < thighIdx.Length; ++k) Add(Local(thighIdx[k]), share * inv[k] / sum);
+                touched++;
+            }
+            var top = w.OrderByDescending(kv => kv.Value).Take(4).ToList();
+            float tot = top.Sum(kv => kv.Value);
+            var nb = new BoneWeight();
+            for (int k = 0; k < top.Count; ++k)
+            {
+                float x = top[k].Value / tot;
+                if (k == 0) { nb.boneIndex0 = top[k].Key; nb.weight0 = x; } else if (k == 1) { nb.boneIndex1 = top[k].Key; nb.weight1 = x; }
+                else if (k == 2) { nb.boneIndex2 = top[k].Key; nb.weight2 = x; } else { nb.boneIndex3 = top[k].Key; nb.weight3 = x; }
+            }
+            verts[v].boneWeight = nb;
+        }
+        meshProvider.SetVertices(rect.spriteID, verts);
+        charProvider.SetCharacterData(cd);
+        dp.Apply();
+        AssetDatabase.ImportAsset(psbPath, ImportAssetOptions.ForceUpdate);
+        return $"{skirtSprite}: bones [{string.Join(",", subset.Select(i => cb[i].name))}], {touched}/{verts.Length} vertices share up to {maxShare:P0} with the thighs (y {startY}..{endY})";
+    }
+
+    // Adds an ankle: a foot bone (child of shinBone, head at the ankle, tail at the ball of the foot) and moves the
+    // existing toe bone under it (toe keeps its place). The boot is re-weighted in three zones: shaft above the
+    // ankle crease -> shin, heel/sole below it -> foot, toe cap (x > ballX, y > instepY) -> toe; each border blends
+    // over +-blend px. Canvas pixels, y down. Other sprites are untouched. Safe to run again (updates in place).
+    public static string AddAnkle(string psbPath, string bootSprite, string shinBone, string footName, string toeName,
+        float ankleX, float ankleY, float creaseY, float ballX, float instepY, float blend)
+    {
+        var layersFile = JsonUtility.FromJson<LayersFile>(File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/layers/layers.json")));
+        var factory = new SpriteDataProviderFactories();
+        factory.Init();
+        var dp = factory.GetSpriteEditorDataProviderFromObject(AssetImporter.GetAtPath(psbPath));
+        dp.InitSpriteEditorDataProvider();
+        var charProvider = dp.GetDataProvider<ICharacterDataProvider>();
+        var boneProvider = dp.GetDataProvider<ISpriteBoneDataProvider>();
+        var meshProvider = dp.GetDataProvider<ISpriteMeshDataProvider>();
+        CharacterData cd = charProvider.GetCharacterData();
+        int H = cd.dimension.y;
+        var cb = cd.bones.ToList();
+        Vector2[] wp = null; float[] wr = null;
+        void World()
+        {
+            wp = new Vector2[cb.Count]; wr = new float[cb.Count];
+            for (int i = 0; i < cb.Count; ++i)
+            {
+                float lr = cb[i].rotation.eulerAngles.z;
+                if (cb[i].parentId < 0) { wp[i] = cb[i].position; wr[i] = lr; }
+                else { int p = cb[i].parentId; wp[i] = wp[p] + (Vector2)(Quaternion.Euler(0, 0, wr[p]) * (Vector2)cb[i].position); wr[i] = wr[p] + lr; }
+            }
+        }
+        World();
+        int si = cb.FindIndex(b => b.name == shinBone), ti = cb.FindIndex(b => b.name == toeName);
+        if (si < 0 || ti < 0) return "shin or toe bone not found";
+        var toeW = (pos: wp[ti], rot: wr[ti]);
+        var ankle = new Vector2(ankleX, H - ankleY);
+        var ball = toeW.pos;
+        float frot = Mathf.Atan2(ball.y - ankle.y, ball.x - ankle.x) * Mathf.Rad2Deg;
+        int fi = cb.FindIndex(b => b.name == footName);
+        Vector2 flp = Quaternion.Euler(0, 0, -wr[si]) * (ankle - wp[si]);
+        var foot = new SpriteBone
+        {
+            name = footName, guid = fi >= 0 ? cb[fi].guid : GUID.Generate().ToString(), parentId = si,
+            position = new Vector3(flp.x, flp.y, 0), rotation = Quaternion.Euler(0, 0, frot - wr[si]),
+            length = (ball - ankle).magnitude, color = new Color(0.9f, 0.4f, 0.1f)
+        };
+        if (fi >= 0) cb[fi] = foot;
+        else if (fi < 0)
+        {
+            // insert before the toe so parents still come before children
+            cb.Insert(ti, foot); fi = ti; ti++;
+            for (int i = 0; i < cb.Count; ++i)
+                if (i != fi && cb[i].parentId >= fi) { var b = cb[i]; b.parentId++; cb[i] = b; }
+            foreach (var pidx in Enumerable.Range(0, cd.parts.Length))
+            {
+                var pt = cd.parts[pidx];
+                if (pt.bones != null) { pt.bones = pt.bones.Select(x => x >= fi ? x + 1 : x).ToArray(); cd.parts[pidx] = pt; }
+            }
+        }
+        // toe now hangs from the foot, keeping its world placement
+        var toe = cb[ti];
+        Vector2 tlp = Quaternion.Euler(0, 0, -frot) * (toeW.pos - ankle);
+        toe.parentId = fi; toe.position = new Vector3(tlp.x, tlp.y, toe.position.z); toe.rotation = Quaternion.Euler(0, 0, toeW.rot - frot);
+        cb[ti] = toe;
+        cd.bones = cb.ToArray();
+        World();
+
+        var rect = dp.GetSpriteRects().First(r => r.name == bootSprite);
+        int partIdx = Array.FindIndex(cd.parts, x => x.spriteId == rect.spriteID.ToString());
+        var part = cd.parts[partIdx];
+        part.bones = new[] { si, fi, ti };
+        cd.parts[partIdx] = part;
+        Vector2 partPos = part.spritePosition.position;
+        var sbs = new List<SpriteBone>();
+        var b0 = cb[si]; b0.position = new Vector3(wp[si].x - partPos.x, wp[si].y - partPos.y, b0.position.z); b0.rotation = Quaternion.Euler(0, 0, wr[si]); b0.parentId = -1; sbs.Add(b0);
+        var b1 = cb[fi]; b1.parentId = 0; sbs.Add(b1);
+        var b2 = cb[ti]; b2.parentId = 1; sbs.Add(b2);
+        boneProvider.SetBones(rect.spriteID, sbs);
+
+        // the bone data changed for every sprite whose bones were renumbered: rebuild their sprite bones too
+        var rects = dp.GetSpriteRects();
+        foreach (var pt in cd.parts)
+        {
+            if (pt.spriteId == part.spriteId || pt.bones == null || pt.bones.Length == 0) continue;
+            var r = rects.FirstOrDefault(x => x.spriteID.ToString() == pt.spriteId);
+            if (r == null) continue;
+            var old = boneProvider.GetBones(r.spriteID);
+            var list = new List<SpriteBone>();
+            for (int k = 0; k < pt.bones.Length; ++k)
+            {
+                int gi = pt.bones[k]; var b = cb[gi];
+                int lp = b.parentId >= 0 ? Array.IndexOf(pt.bones, b.parentId) : -1;
+                if (lp < 0) { b.position = new Vector3(wp[gi].x - pt.spritePosition.x, wp[gi].y - pt.spritePosition.y, b.position.z); b.rotation = Quaternion.Euler(0, 0, wr[gi]); }
+                b.parentId = lp;
+                if (k < old.Count) b.guid = old[k].guid;
+                list.Add(b);
+            }
+            boneProvider.SetBones(r.spriteID, list);
+        }
+
+        var layer = layersFile.layers.First(l => l.name == bootSprite + ".png");
+        var tex = new Texture2D(2, 2);
+        tex.LoadImage(File.ReadAllBytes(Path.Combine(ProjectRoot, "ArtSource/layers", layer.file)));
+        BuildGridMesh(tex, H, partPos, (int)rect.rect.width, (int)rect.rect.height, out var verts, out var indices, out var edges, 8);
+        UnityEngine.Object.DestroyImmediate(tex);
+        float Smooth(float a, float b, float x) { float t = Mathf.Clamp01((x - a) / (b - a)); return t * t * (3f - 2f * t); }
+        var vmeta = new Vertex2DMetaData[verts.Count];
+        int nFoot = 0, nToe = 0;
+        for (int v = 0; v < verts.Count; ++v)
+        {
+            float cx = verts[v].x + partPos.x, cy = H - (verts[v].y + partPos.y);
+            float wToe = Smooth(ballX - blend, ballX + blend, cx) * Smooth(instepY - blend, instepY + blend, cy);
+            float wFoot = (1f - wToe) * Smooth(creaseY - blend, creaseY + blend, cy);
+            float wShin = 1f - wToe - wFoot;
+            if (wFoot > 0.5f) nFoot++; if (wToe > 0.5f) nToe++;
+            vmeta[v].position = verts[v];
+            vmeta[v].boneWeight = new BoneWeight { boneIndex0 = 0, weight0 = wShin, boneIndex1 = 1, weight1 = wFoot, boneIndex2 = 2, weight2 = wToe };
+        }
+        meshProvider.SetVertices(rect.spriteID, vmeta);
+        meshProvider.SetIndices(rect.spriteID, indices.ToArray());
+        meshProvider.SetEdges(rect.spriteID, edges.ToArray());
+        charProvider.SetCharacterData(cd);
+        dp.Apply();
+        AssetDatabase.ImportAsset(psbPath, ImportAssetOptions.ForceUpdate);
+        return $"{bootSprite}: {footName} ankle ({ankleX},{ankleY}) -> ball; {toeName} reparented; {verts.Count} verts: {nFoot} foot, {nToe} toe";
+    }
+
     // Makes one sprite rigid: every vertex 100% on boneName. Only that sprite's weights change;
     // bone positions, other sprites and meshes are left as they are (safe after Skinning Editor edits).
     public static string SetRigid(string psbPath, string spriteName, string boneName)

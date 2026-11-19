@@ -2,6 +2,7 @@
 
 read_layers(path) -> (W, H, layers)   layers in file order (top first); each:
     dict(name, group, visible (incl. parent groups), opacity 0..1, offset (x, y), pixels RGBA uint8 array or None)
+    A layer mask (when "Apply Layer Mask" is on) is multiplied into the layer's alpha.
 composite(path, skip=lambda name: False) -> RGBA uint8 array (H, W, 4)
     Normal-mode stack of the visible, non-group layers (layer opacity applied; blend modes ignored).
 """
@@ -10,6 +11,7 @@ import numpy as np
 
 PROP_END, PROP_OPACITY, PROP_VISIBLE, PROP_OFFSETS, PROP_COMPRESSION = 0, 6, 8, 15, 17
 PROP_GROUP_ITEM, PROP_ITEM_PATH, PROP_FLOAT_OPACITY = 29, 30, 33
+PROP_APPLY_MASK = 11
 
 
 def read_layers(path):
@@ -93,6 +95,7 @@ def read_layers(path):
         name = d[q:q + nl - 1].decode('utf-8', 'replace'); q += nl
         pr, q = props(q)
         hp, q = rp(q)
+        mp, q = rp(q)   # layer mask (a channel) or 0
         if PROP_ITEM_PATH in pr:
             path_ = tuple(struct.unpack('>%dI' % (len(pr[PROP_ITEM_PATH]) // 4), pr[PROP_ITEM_PATH]))
         else:
@@ -105,6 +108,16 @@ def read_layers(path):
         L = dict(name=name, group=group, visible=vis, opacity=op, path=path_,
                  offset=struct.unpack('>ii', pr[PROP_OFFSETS]) if PROP_OFFSETS in pr else (0, 0),
                  pixels=None if group else pixels(hp))
+        apply_mask = struct.unpack('>I', pr[PROP_APPLY_MASK])[0] != 0 if PROP_APPLY_MASK in pr else True
+        if mp and not group and apply_mask:
+            m = mp + 8
+            ml = struct.unpack('>I', d[m:m + 4])[0]; m += 4 + ml     # channel name
+            _, m = props(m)
+            mhp, m = rp(m)
+            mask = pixels(mhp)[..., 0].astype(np.uint16)
+            px = L['pixels'].copy()
+            px[..., 3] = (px[..., 3].astype(np.uint16) * mask // 255).astype(np.uint8)
+            L['pixels'] = px
         by_path[path_] = L
         layers.append(L)
     for L in layers:  # hidden parent group hides its children

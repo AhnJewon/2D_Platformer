@@ -56,6 +56,43 @@ def cut_background(rgb):
     return alpha
 
 
+def clear_enclosed_white(rgba, min_size=250):
+    """The original PNG was cut out from the outside only: white background enclosed by the outlines (behind the
+    raised arm, under the knee, between hair and coat, gaps between hair strands) is still opaque. Any flat white
+    patch of min_size+ px is such a hole (hair highlights are smaller and slightly blue/grey). The 2-px anti-aliased
+    rim around each hole is un-blended from white so no light fringe is left."""
+    out = rgba.astype(np.float32).copy()
+    rgb = out[..., :3]
+    lo, hi = rgb.min(2), rgb.max(2)
+    white = (out[..., 3] > 0) & (lo >= 232) & (hi - lo <= 8)
+    hole = np.zeros(white.shape, bool)
+    seen = np.zeros(white.shape, bool)
+    h, w = white.shape
+    for sy, sx in zip(*np.nonzero(white)):
+        if seen[sy, sx]: continue
+        q = deque([(sy, sx)]); seen[sy, sx] = True; pts = []
+        while q:
+            y, x = q.popleft(); pts.append((y, x))
+            for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+                if 0 <= ny < h and 0 <= nx < w and white[ny, nx] and not seen[ny, nx]:
+                    seen[ny, nx] = True; q.append((ny, nx))
+        if len(pts) >= min_size and np.mean([lo[p] for p in pts]) >= 250:
+            ys, xs = zip(*pts); hole[ys, xs] = True
+    out[hole, 3] = 0
+    rim = out[..., 3] == 0   # the outer cut-out edge has the same light fringe, so clean it too
+    rim = rim.copy()
+    for _ in range(2):
+        rim = rim | np.roll(rim, 1, 0) | np.roll(rim, -1, 0) | np.roll(rim, 1, 1) | np.roll(rim, -1, 1)
+    rim &= (out[..., 3] > 0) & (lo > 60)
+    # pixel = a*ink + (1-a)*white, ink ~ the dark outline -> a from brightness, colour un-blended from white
+    a = np.clip((255.0 - lo[rim]) / (255.0 - 40.0), 0.0, 1.0)
+    keep = np.maximum(a, 1e-3)[:, None]
+    rgb[rim] = np.clip((rgb[rim] - (1.0 - keep) * 255.0) / keep, 0, 255)
+    out[rim, 3] = out[rim, 3] * a
+    print('cleared %d enclosed white px (+%d rim px)' % (hole.sum(), rim.sum()))
+    return (out + 0.5).astype(np.uint8)
+
+
 def recolour_lining(rgba):
     a = rgba.astype(np.float32) / 255.0
     out = a.copy()
@@ -84,6 +121,6 @@ if '--sheet' in sys.argv:
         Image.fromarray(recolour_lining(rgba), 'RGBA').save(os.path.join(DST, 'Slide_%02d.png' % i))
         print('Slide_%02d.png' % i, rgb.shape[1], 'x', rgb.shape[0], '(sheet: set 173 px/unit, pivot 341,21 in SlideSpriteImport.cs)')
 else:
-    rgba = np.asarray(Image.open(ORIGINAL).convert('RGBA'))   # already transparent
-    Image.fromarray(recolour_lining(rgba), 'RGBA').save(os.path.join(DST, 'Slide_00.png'))
+    rgba = np.asarray(Image.open(ORIGINAL).convert('RGBA'))   # transparent outside, but enclosed gaps are white
+    Image.fromarray(recolour_lining(clear_enclosed_white(rgba)), 'RGBA').save(os.path.join(DST, 'Slide_00.png'))
     print('Slide_00.png', rgba.shape[1], 'x', rgba.shape[0], 'from', os.path.basename(ORIGINAL))

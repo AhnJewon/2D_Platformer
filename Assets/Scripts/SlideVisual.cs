@@ -9,6 +9,8 @@ public class SlideVisual : MonoBehaviour
     public int sortingOrder = 30;    // drawn like the rig (rig parts use 0..29)
 
     SpriteRenderer slide;
+    public SpriteRenderer Renderer => slide;          // DashFX copies it for the slide afterimages
+    public bool IsShowing => showing && slide != null && slide.enabled;
     SpriteRenderer[] rig;
     bool showing;
     float t;

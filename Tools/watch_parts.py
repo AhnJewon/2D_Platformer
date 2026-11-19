@@ -5,12 +5,15 @@
 Save a part in GIMP (Ctrl+S on ArtSource/Parts/<part>.xcf, or overwrite <part>.png) and, about a second later,
 Tools/update_parts.py runs: Player.psb is rebuilt and the open Unity Editor reimports it.
 Layers named REF... inside a part file are ignored, so keep the reference layer visible while painting.
+Also watches ArtSource/Sprites (hand poses, sabre, slash, dummy; made by Tools/make_sprite_files.py): a saved sprite
+XCF runs Tools/update_sprites.py for that sprite only.
 """
 import os, sys, time, traceback
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, 'Tools'))
 import update_parts
+import update_sprites
 
 SETTLE = 1.0   # seconds a file must stay unchanged before syncing (GIMP writes in several steps)
 POLL = 0.5
@@ -31,16 +34,31 @@ def main():
     cfg = update_parts.load(os.path.join(update_parts.ART, 'parts_source.json'))
     folder = os.path.join(ROOT, cfg.get('parts', 'ArtSource/Parts'))
     print('watching', os.path.relpath(folder, ROOT), '- save a part in GIMP to sync it to Unity (Ctrl+C to stop)', flush=True)
+    sprites = os.path.join(ROOT, 'ArtSource', 'Sprites')
+    has_sprites = os.path.isdir(sprites)
+    if has_sprites: print('watching ArtSource/Sprites too (hand poses, sabre, slash, dummy)', flush=True)
     last = snapshot(folder)
-    pending, changed_at = set(), 0.0
+    last_s = snapshot(sprites) if has_sprites else {}
+    pending, pending_s, changed_at = set(), set(), 0.0
     while True:
         time.sleep(POLL)
         now = snapshot(folder)
+        now_s = snapshot(sprites) if has_sprites else {}
         diff = {f for f in set(now) | set(last) if now.get(f) != last.get(f)}
-        last = now
-        if diff:
-            pending |= diff; changed_at = time.time()
+        diff_s = {f for f in set(now_s) | set(last_s) if now_s.get(f) != last_s.get(f) and f.lower().endswith('.xcf')}
+        last, last_s = now, now_s
+        if diff or diff_s:
+            pending |= diff; pending_s |= diff_s; changed_at = time.time()
             continue
+        if pending_s and time.time() - changed_at >= SETTLE:
+            names = sorted(os.path.splitext(f)[0] for f in pending_s)
+            print('\n[%s] sprites changed: %s' % (time.strftime('%H:%M:%S'), ', '.join(names)), flush=True)
+            pending_s = set()
+            try:
+                update_sprites.main(names)
+            except Exception:
+                traceback.print_exc()
+            sys.stdout.flush()
         if pending and time.time() - changed_at >= SETTLE:
             print('\n[%s] changed: %s' % (time.strftime('%H:%M:%S'), ', '.join(sorted(pending))), flush=True)
             pending = set()

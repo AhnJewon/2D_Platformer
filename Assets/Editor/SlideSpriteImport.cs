@@ -15,13 +15,13 @@ public class SlideSpriteImport : AssetPostprocessor
         var ti = (TextureImporter)assetImporter;
         ti.textureType = TextureImporterType.Sprite;
         ti.spriteImportMode = SpriteImportMode.Single;
-        ti.spritePixelsPerUnit = 346f;
+        ti.spritePixelsPerUnit = 407f;   // 346 = rig size; 407 = 85% of it (reads better next to the rig)
         ti.mipmapEnabled = false;
         ti.alphaIsTransparency = true;
         var s = new TextureImporterSettings();
         ti.ReadTextureSettings(s);
         s.spriteAlignment = (int)SpriteAlignment.Custom;
-        s.spritePivot = new Vector2(682f / 1376f, 43f / 768f);
+        s.spritePivot = new Vector2(682f / 1376f, 67f / 768f);   // 43 = soles on the floor; 67 lowers her 0.06 u so the hips/coat sit near the floor (dust hides the hand and heels)
         s.spriteMeshType = SpriteMeshType.Tight;
         ti.SetTextureSettings(s);
     }

@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e7ea35ea48c494458405d86c99c3472, type: 3}
+  m_Name: Pistol
+  m_EditorClassIdentifier: Assembly-CSharp::RangedWeapon
+  sprite: {fileID: 21300000, guid: 3c1177ef7d456074cb6e454b8d880210, type: 3}
+  boltSprite: {fileID: 21300000, guid: 4c44ed528785f584c9a709680a20c99e, type: 3}
+  muzzleFlashSprite: {fileID: 21300000, guid: 2f2057141c449ae40830bef1556919e8, type: 3}
+  muzzle: {x: 0.46, y: 0.18}
+  gripPose: Grip
+  gripBladeOffset: 8.4
+  gripLocal: {x: 0.158, y: -0.019}
+  wristMin: -12
+  wristMax: 28
+  armReach: 0.72
+  stance: 1
+  supportGrip: {x: -0.03, y: -0.07}
+  twoHandRecoil: 0.55
+  weaverReach: 0.68
+  automatic: 1
+  fireInterval: 0.16
+  magazine: 12
+  reloadTime: 0.9
+  damage: 6
+  knockback: 2.5
+  boltSpeed: 26
+  range: 18
+  spread: 1.5
+  kickAngle: 14
+  kickBack: 0.09
+  recoilTime: 0.12
+  kickLean: 1.5
+  pushBack: 0
+  shake: 0.05
+  shakeTime: 0.08

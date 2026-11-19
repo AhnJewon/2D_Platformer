@@ -168,7 +168,7 @@ def main(argv=None):
             unity = shutil.which('unity')
             r = subprocess.run([unity, 'command', 'script', 'eval', '--project-path', ROOT, '--timeout', '300',
                                 '--caller', 'plugin', '--skill', 'unity-cli', '--file', REIMPORT_CS],
-                               capture_output=True, text=True) if unity else None
+                               capture_output=True, text=True, encoding='utf-8', errors='replace') if unity else None
             if r is not None and 'reimported' in r.stdout:
                 print('Unity:', r.stdout.strip().strip('"').replace('\\n', '\n'))
             else:

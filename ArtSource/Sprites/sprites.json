@@ -1,0 +1,146 @@
+{
+ "Hand_Grip": {
+  "dst": "Assets/Character/Hands/Hand_Grip.png",
+  "ppu": 2070.433,
+  "pivot": [
+   290.0,
+   500.0
+  ],
+  "size": [
+   1024,
+   1024
+  ],
+  "flags": [
+   "defringe_white"
+  ],
+  "source": "ArtSource/NAI_V5_rig_v3/hands/grip_back_naiv5_preset_seed30102.png"
+ },
+ "Hand_Open": {
+  "dst": "Assets/Character/Hands/Hand_Open.png",
+  "ppu": 2623.481,
+  "pivot": [
+   488.0,
+   120.0
+  ],
+  "size": [
+   1024,
+   1024
+  ],
+  "flags": [
+   "defringe_white"
+  ],
+  "source": "ArtSource/NAI_V5_rig_v3/hands/open_nai45_seed12101.png"
+ },
+ "Hand_Spread": {
+  "dst": "Assets/Character/Hands/Hand_Spread.png",
+  "ppu": 2384.507,
+  "pivot": [
+   285.0,
+   905.0
+  ],
+  "size": [
+   1024,
+   1024
+  ],
+  "flags": [
+   "defringe_white"
+  ],
+  "source": "ArtSource/NAI_V5_rig_v3/hands/spread_nai45_seed12102.png"
+ },
+ "Saber": {
+  "dst": "Assets/Character/Weapons/Saber.png",
+  "ppu": 829.444,
+  "pivot": [
+   210.0,
+   340.0
+  ],
+  "size": [
+   1536,
+   640
+  ],
+  "flags": [
+   "defringe_white"
+  ],
+  "source": "ArtSource/NAI_V5_rig_v3/weapons/sabre_nai45_seed44120.png"
+ },
+ "Slash": {
+  "dst": "Assets/Character/Weapons/Slash.png",
+  "ppu": 297.6,
+  "pivot": [
+   545.0,
+   532.0
+  ],
+  "size": [
+   1024,
+   1024
+  ],
+  "flags": [
+   "from_black"
+  ],
+  "source": "ArtSource/NAI_V5_rig_v3/weapons/slash_nai45_seed5150.png"
+ },
+ "Dummy": {
+  "dst": "Assets/Character/Weapons/Dummy.png",
+  "ppu": 660.435,
+  "pivot": [
+   328.0,
+   1521.0
+  ],
+  "size": [
+   640,
+   1536
+  ],
+  "flags": [
+   "defringe_white"
+  ],
+  "source": "ArtSource/NAI_V5_rig_v3/weapons/dummy_nai45_seed8843.png"
+ },
+ "Pistol": {
+  "dst": "Assets/Character/Weapons/Pistol.png",
+  "ppu": 1905.455,
+  "pivot": [
+   250.0,
+   560.0
+  ],
+  "size": [
+   1216,
+   832
+  ],
+  "flags": [
+   "defringe_white"
+  ],
+  "source": "ArtSource/NAI_V5_rig_v3/weapons/pistol_naiv5_preset_seed40101.png"
+ },
+ "Bolt": {
+  "dst": "Assets/Character/Weapons/Bolt.png",
+  "ppu": 1358.571,
+  "pivot": [
+   1030.0,
+   405.0
+  ],
+  "size": [
+   1216,
+   832
+  ],
+  "flags": [
+   "from_black"
+  ],
+  "source": "ArtSource/NAI_V5_rig_v3/weapons/bolt_naiv5_seed40201.png"
+ },
+ "MuzzleFlash": {
+  "dst": "Assets/Character/Weapons/MuzzleFlash.png",
+  "ppu": 1786.0,
+  "pivot": [
+   165.0,
+   520.0
+  ],
+  "size": [
+   1024,
+   1024
+  ],
+  "flags": [
+   "from_black"
+  ],
+  "source": "ArtSource/NAI_V5_rig_v3/weapons/muzzleflash_naiv5_seed40301.png"
+ }
+}

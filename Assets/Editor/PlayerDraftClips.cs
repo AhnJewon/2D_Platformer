@@ -186,6 +186,8 @@ public static class PlayerDraftClips
             var jumpClips = MakeJumpClips(animRoot);
             EnsureJumpStates(AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath), jumpClips);
             EnsureDashSlideStates(AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath), MakeDashSlideClips(animRoot));
+            EnsureCrouchStates(AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath), MakeCrouchClips(animRoot));
+            EnsureBackpedalState(AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath), MakeBackpedalClip(animRoot));
             var controller = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(ControllerPath);
             if (animator.runtimeAnimatorController == null)
             {
@@ -535,6 +537,315 @@ public static class PlayerDraftClips
         var s3 = sSlideOut.AddTransition(idle); s3.hasExitTime = true; s3.exitTime = 1f; s3.duration = 0.06f;
         EditorUtility.SetDirty(ctrl);
         Debug.Log("[PlayerDraftClips] Added Dash/DashEnd/SlideIn/SlideOut to " + ControllerPath);
+    }
+
+    // ---------------- Crouch (draft) ----------------
+    // References (ArtSource/references/crouch_reference.md):
+    //  - crouch: Dimensions.com "Crouching - Women (Side)", figure 2 - front foot flat with the knee up at hip height,
+    //    rear knee low with the heel lifted, trunk folded forward over the thighs, head up looking ahead.
+    //  - crouch walk: Animation Mentor sneak walk - contact / down / passing / up, short steps, hips rise a little at
+    //    passing, upper body kept from the contact pose (no spine drift); game packs keep crouch idle + crouch walk
+    //    as their own states and keep the crouch baseline the same as the other states.
+    // Legs are solved with 2-bone IK from foot targets, so the planted foot really stays put on the floor.
+    const float CrouchJoint = 0.88f;     // leg joint height while crouched (standing: 1.49)
+    const float CrouchWalkJoint = 0.94f;  // a little higher while moving (sneak: hips rise at passing)
+    const float CrouchStride = 0.6f;     // foot travel per step (units)
+    public const float CrouchWalkCycle = 0.86f;  // s per 2 steps; each foot is planted for half of it
+    public const float CrouchWalkSpeed = CrouchStride / (0.5f * CrouchWalkCycle);   // stance = half the cycle
+
+    static Dictionary<string, Transform> s_Bones;
+    static Transform B(Transform animRoot, string n)
+    {
+        if (s_Bones == null || !s_Bones.ContainsKey(n) || s_Bones[n] == null)
+            s_Bones = animRoot.GetComponentsInChildren<Transform>(true).GroupBy(t => t.name).ToDictionary(g => g.Key, g => g.First());
+        return s_Bones[n];
+    }
+    static float Ang(Vector2 v) => Mathf.Atan2(v.y, v.x) * Mathf.Rad2Deg;
+    static Vector2 Rot(Vector2 v, float deg) { float r = deg * Mathf.Deg2Rad, c = Mathf.Cos(r), s = Mathf.Sin(r); return new Vector2(c * v.x - s * v.y, s * v.x + c * v.y); }
+
+    // Leg angles (offsets from bind, as used in Pose) that put the ankle on `ankle` (model space, bind = feet on the
+    // floor at y = 0) with the knee bent forward, given the pelvis rotation and the hip's vertical offset.
+    static void LegIK(Transform animRoot, Pose p, string side, Vector2 ankle)
+    {
+        Vector2 hip = B(animRoot, "hip").position, up = B(animRoot, "leg_" + side + "_upper").position;
+        Vector2 lo = B(animRoot, "leg_" + side + "_lower").position, ft = B(animRoot, "foot_" + side).position;
+        float hipRot = p.TryGetValue("hip", out var h) ? h : 0f;
+        Vector2 j = hip + new Vector2(0, p.bob) + Rot(up - hip, hipRot);
+        float l1 = (lo - up).magnitude, l2 = (ft - lo).magnitude;
+        Vector2 v = ankle - j;
+        float d = Mathf.Clamp(v.magnitude, Mathf.Abs(l1 - l2) + 1e-3f, l1 + l2 - 1e-3f);
+        float alpha = Mathf.Acos(Mathf.Clamp((l1 * l1 + d * d - l2 * l2) / (2 * l1 * d), -1f, 1f)) * Mathf.Rad2Deg;
+        float thighAbs = Ang(v) + alpha;                                   // knee forward (+X)
+        Vector2 knee = j + Rot(Vector2.right, thighAbs) * l1;
+        float shinAbs = Ang(ankle - knee);
+        float thigh = Mathf.DeltaAngle(0f, thighAbs - Ang(lo - up) - hipRot);
+        float kneeD = Mathf.DeltaAngle(0f, shinAbs - Ang(ft - lo) - hipRot - thigh);
+        p["leg_" + side + "_upper"] = thigh; p["leg_" + side + "_lower"] = kneeD;
+    }
+
+    static Dictionary<string, AnimationClip> MakeCrouchClips(Transform animRoot)
+    {
+        s_Bones = null;
+        float jointY = B(animRoot, "leg_front_upper").position.y;   // 1.49
+        Vector2 Joint(string side) => B(animRoot, "leg_" + side + "_upper").position;
+        Vector2 Ankle(string side) => B(animRoot, "foot_" + side).position;  // bind ankle: its height is the "on the floor" level
+
+        // upper body shared by both clips: trunk folded ~50 deg (pelvis 22 + chest 28), head up to look ahead
+        Pose Upper(float bob)
+        {
+            var p = P(bob, ("neck", 16f), ("head", 26f),
+                ("arm_near_upper", 28f), ("arm_near_fore", 45f), ("arm_far_upper", 20f), ("arm_far_fore", 55f),
+                // long back hair would reach the floor: lift it backward a little
+                ("hair_back_1", -8f), ("hair_back_2", -6f), ("hair_back_3", -4f),
+                // the coat hangs from the tilted pelvis: bring it back toward vertical and fold it a little so the
+                // tail lies behind her instead of pushing into the floor
+                ("coat_back_1", 14f), ("coat_back_2", -18f), ("coat_front_1", 18f), ("coat_front_2", 34f), ("skirt", 4f));   // front flap: lower panel folds up so its tip stays off the floor
+            p["hip"] = -22f; p["spine"] = -28f;
+            return p;
+        }
+
+        // ---- crouch idle ----
+        Pose CrouchPose(float breathe)
+        {
+            var p = Upper(CrouchJoint - jointY + breathe);
+            // front foot flat ~0.28 ahead of its hip joint; rear foot ~0.3 behind, heel lifted onto the toes
+            LegIK(animRoot, p, "front", new Vector2(Joint("front").x + 0.32f, Ankle("front").y));
+            LegIK(animRoot, p, "rear", new Vector2(Joint("rear").x - 0.30f, Ankle("rear").y + 0.07f));
+            Flat(p);
+            p["foot_rear"] -= 38f; p["toe_rear"] = 30f;   // heel up, toe cap flat on the floor
+            p["spine"] += 1.2f * breathe / 0.008f * 0.5f;
+            return p;
+        }
+        var idleTracks = new List<Track>();
+        {
+            var a = CrouchPose(0f); var b = CrouchPose(-0.008f);
+            foreach (var bone in a.Keys.ToList())
+            {
+                string n = bone; float va = a[n], vb = b[n];
+                idleTracks.Add(new Track { bone = n, rot = q => Mathf.Lerp(va, vb, 0.5f - 0.5f * Mathf.Cos(q * Mathf.PI * 2f)) });
+            }
+            idleTracks.Add(new Track { bone = "hip", bobY = q => Mathf.Lerp(a.bob, b.bob, 0.5f - 0.5f * Mathf.Cos(q * Mathf.PI * 2f)) });
+            foreach (var t in idleTracks.Where(t => t.bone == "hair_back_3" || t.bone == "coat_back_2").ToList())
+            { var r = t.rot; t.rot = q => r(q) + 1.2f * S(q, 0.3f); }
+        }
+
+        // ---- crouch walk ----
+        // foot path per leg, phase 0 = contact (foot forward): stance 0..0.5 the foot slides back under her on the
+        // floor (flat), push-off at the end lifts the heel; swing 0.5..1 it lifts ~0.09 and comes forward.
+        Vector2 FootAt(string side, float q, out float heel, out float tilt)
+        {
+            float half = CrouchStride * 0.5f, x, y = 0f; heel = 0f; tilt = 0f;
+            if (q < 0.5f)
+            {
+                float u = q / 0.5f;
+                x = Mathf.Lerp(half, -half, u);
+                heel = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.7f, 1f, u));   // push-off: heel comes up
+                y = 0.05f * heel;
+            }
+            else
+            {
+                float u = (q - 0.5f) / 0.5f;
+                x = Mathf.Lerp(-half, half, Mathf.SmoothStep(0f, 1f, u));
+                y = 0.09f * Mathf.Sin(u * Mathf.PI) + 0.05f * (1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0f, 0.3f, u)));
+                tilt = 18f * Mathf.Sin(u * Mathf.PI);                                // toes hang a little in the air
+                heel = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0f, 0.25f, u));
+            }
+            // centre each foot slightly ahead of its hip joint (crouched weight sits over the front of the feet)
+            return new Vector2(Joint(side).x + 0.02f + x, Ankle(side).y + y);
+        }
+        Pose WalkPose(float q)
+        {
+            // contact (q = 0, 0.5) lowest, passing (0.25, 0.75) highest
+            float bob = CrouchWalkJoint - jointY - 0.025f * Mathf.Cos(q * Mathf.PI * 4f);
+            var p = Upper(bob);
+            float hr, tr, hf, tf;
+            var fr = FootAt("rear", q, out hr, out tr);
+            var ff = FootAt("front", (q + 0.5f) % 1f, out hf, out tf);
+            LegIK(animRoot, p, "rear", fr); LegIK(animRoot, p, "front", ff);
+            Flat(p);
+            p["foot_rear"] -= 30f * hr + tr; p["toe_rear"] = 26f * hr;
+            p["foot_front"] -= 30f * hf + tf; p["toe_front"] = 26f * hf;
+            // arms: small swing against the legs (near arm with the rear leg), chest stays as in contact
+            float sw = Mathf.Sin(q * Mathf.PI * 2f);
+            p["arm_near_upper"] += 10f * sw; p["arm_far_upper"] -= 10f * sw;
+            p["spine"] += 1f * Mathf.Cos(q * Mathf.PI * 4f);
+            p["hair_back_2"] += 2f * Mathf.Sin((q * 2f + 0.3f) * Mathf.PI * 2f);
+            p["hair_back_3"] += 3f * Mathf.Sin((q * 2f + 0.45f) * Mathf.PI * 2f);
+            p["coat_back_2"] += 3f * Mathf.Sin((q * 2f + 0.35f) * Mathf.PI * 2f);
+            p["skirt"] += 1.5f * Mathf.Sin((q * 2f + 0.2f) * Mathf.PI * 2f);
+            return p;
+        }
+        var walkTracks = new List<Track>();
+        var cache = new Dictionary<float, Pose>();
+        Pose W(float q) { if (!cache.TryGetValue(q, out var p)) cache[q] = p = WalkPose(q); return p; }
+        foreach (var bone in W(0f).Keys.ToList())
+        {
+            string n = bone;
+            walkTracks.Add(new Track { bone = n, rot = q => W(q).TryGetValue(n, out var v) ? v : 0f });
+        }
+        walkTracks.Add(new Track { bone = "hip", bobY = q => W(q).bob });
+
+        return new Dictionary<string, AnimationClip>
+        {
+            ["Crouch"] = MakeClip("Player_Crouch_Draft", animRoot, idleTracks, 2.0f, 8),
+            ["CrouchWalk"] = MakeClip("Player_CrouchWalk_Draft", animRoot, walkTracks, CrouchWalkCycle, 24),
+        };
+    }
+
+    // Parameter: Crouching (bool). State "Crouch" = 1D blend on Speed (0: Crouch, CrouchWalkSpeed: CrouchWalk).
+    // Any state -> Crouch while Crouching (grounded, not dashing/sliding); Crouch -> Idle/Run when she stands up.
+    static void EnsureCrouchStates(AnimatorController ctrl, Dictionary<string, AnimationClip> clips)
+    {
+        if (ctrl.parameters.All(p => p.name != "Crouching")) ctrl.AddParameter("Crouching", AnimatorControllerParameterType.Bool);
+        var sm = ctrl.layers[0].stateMachine;
+        AnimatorState Get(string n) => sm.states.Select(s => s.state).FirstOrDefault(s => s.name == n);
+        var existing = Get("Crouch");
+        if (existing != null)
+        {
+            var bt = (BlendTree)existing.motion;
+            var ch = bt.children; ch[0].motion = clips["Crouch"]; ch[1].motion = clips["CrouchWalk"]; ch[1].threshold = CrouchWalkSpeed; bt.children = ch;
+            EditorUtility.SetDirty(ctrl);
+            return;
+        }
+        var tree = new BlendTree { name = "CrouchBlend", blendType = BlendTreeType.Simple1D, blendParameter = "Speed", useAutomaticThresholds = false, hideFlags = HideFlags.HideInHierarchy };
+        AssetDatabase.AddObjectToAsset(tree, ctrl);
+        tree.AddChild(clips["Crouch"], 0f);
+        tree.AddChild(clips["CrouchWalk"], CrouchWalkSpeed);
+        var sCrouch = sm.AddState("Crouch"); sCrouch.motion = tree;
+
+        var a = sm.AddAnyStateTransition(sCrouch); a.hasExitTime = false; a.duration = 0.1f; a.canTransitionToSelf = false;
+        a.AddCondition(AnimatorConditionMode.If, 0, "Crouching");
+        a.AddCondition(AnimatorConditionMode.If, 0, "Grounded");
+        a.AddCondition(AnimatorConditionMode.IfNot, 0, "Sliding");
+        a.AddCondition(AnimatorConditionMode.IfNot, 0, "Dashing");
+        var toRun = sCrouch.AddTransition(Get("Run")); toRun.hasExitTime = false; toRun.duration = 0.12f;
+        toRun.AddCondition(AnimatorConditionMode.IfNot, 0, "Crouching"); toRun.AddCondition(AnimatorConditionMode.Greater, 3.5f, "Speed");
+        var toWalk = sCrouch.AddTransition(Get("Walk")); toWalk.hasExitTime = false; toWalk.duration = 0.12f;
+        toWalk.AddCondition(AnimatorConditionMode.IfNot, 0, "Crouching"); toWalk.AddCondition(AnimatorConditionMode.Greater, 0.1f, "Speed");
+        var toIdle = sCrouch.AddTransition(Get("Idle")); toIdle.hasExitTime = false; toIdle.duration = 0.12f;
+        toIdle.AddCondition(AnimatorConditionMode.IfNot, 0, "Crouching");
+        EditorUtility.SetDirty(ctrl);
+        Debug.Log("[PlayerDraftClips] Added Crouch (Crouch/CrouchWalk blend) to " + ControllerPath);
+    }
+
+    // ---------------- Backpedal (draft) ----------------
+    // Moving away from the aim (mouse) while facing it. References (ArtSource/references/backpedal_reference.md):
+    //  - biomechanics of backward walking: joint patterns are close to a time-reversed forward walk, the TOES touch
+    //    down first, stride and speed are shorter, cadence higher, stance takes a bigger share of the cycle and the
+    //    knee bends less while loaded.
+    //  - football defensive-back backpedal: low stance with the chest forward over the knees, weight on the balls of
+    //    the feet (never back on the heels), short quick steps with the feet kept low, arms bent ~90 deg, never full speed.
+    // Feet are placed with the same 2-bone IK as the crouch walk, so planted feet do not slide at BackpedalSpeed.
+    const float BackJoint = 1.38f;                   // leg joint height (standing 1.49): knees a little bent
+    const float BackStride = 0.6f;                   // foot travel per stance
+    public const float BackpedalCycle = 0.46f;       // 2 steps; quick, short steps
+    public const float BackpedalSpeed = BackStride / (0.5f * BackpedalCycle);   // = 2.6 u/s (PlayerController2D.backpedalSpeed)
+
+    static AnimationClip MakeBackpedalClip(Transform animRoot)
+    {
+        s_Bones = null;
+        float jointY = B(animRoot, "leg_front_upper").position.y;
+        Vector2 Joint(string side) => B(animRoot, "leg_" + side + "_upper").position;
+        Vector2 Ankle(string side) => B(animRoot, "foot_" + side).position;
+
+        // per leg, phase 0 = toe touch-down BEHIND the hips. The body moves back (-X), so in stance (0..0.5) the planted
+        // foot travels forward under her; at the end of stance the toes lift first (reverse of a heel-off).
+        // Swing (0.5..1): the foot is carried back low and reaches back toes-down for the next contact.
+        Vector2 FootAt(string side, float q, out float footRot)
+        {
+            float half = BackStride * 0.5f, x, y;
+            if (q < 0.5f)
+            {
+                float u = q / 0.5f;
+                x = Mathf.Lerp(-half, half, u);
+                float load = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0f, 0.3f, u));    // heel lowers after the toe touch
+                float lift = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.75f, 1f, u));   // toes come up before the foot leaves
+                footRot = -24f * (1f - load) + 14f * lift;
+                y = 0.06f * (1f - load) + 0.02f * lift;
+            }
+            else
+            {
+                float u = (q - 0.5f) / 0.5f, e = Mathf.SmoothStep(0f, 1f, u);
+                x = Mathf.Lerp(half, -half, e);
+                footRot = Mathf.Lerp(14f, -24f, e);
+                y = 0.08f * Mathf.Sin(u * Mathf.PI) + Mathf.Lerp(0.02f, 0.06f, u);       // feet kept low
+            }
+            return new Vector2(Joint(side).x - 0.03f + x, Ankle(side).y + y);
+        }
+
+        Pose At(float q)
+        {
+            // lowest while loading just after each toe contact, highest at the hand-over (both feet light)
+            float bob = BackJoint - jointY - 0.02f * Mathf.Cos((q - 0.1f) * Mathf.PI * 4f);
+            float sw = Mathf.Sin(q * Mathf.PI * 2f), sw2 = Mathf.Sin(q * Mathf.PI * 4f);
+            var p = P(bob, ("neck", 5f), ("head", 9f),
+                // arms bent ~90, short quick pumps opposite to the legs (the near arm is re-posed by the weapon aim)
+                ("arm_near_upper", 12f - 14f * sw), ("arm_near_fore", 80f), ("arm_far_upper", 12f + 14f * sw), ("arm_far_fore", 85f),
+                // moving backwards: hair and coat tails trail FORWARD (+ = tip toward +X)
+                ("hair_back_1", 6f + 1.5f * sw2), ("hair_back_2", 4f + 2.5f * Mathf.Sin((q * 2f + 0.3f) * Mathf.PI * 2f)),
+                ("hair_back_3", 3f + 3.5f * Mathf.Sin((q * 2f + 0.45f) * Mathf.PI * 2f)),
+                ("hair_front_near_1", 3f), ("hair_front_far_1", 3f),
+                ("coat_back_1", 8f + 2f * sw2), ("coat_back_2", 4f + 3f * Mathf.Sin((q * 2f + 0.35f) * Mathf.PI * 2f)),
+                ("coat_front_1", 7f + 2f * sw2), ("coat_front_2", 4f + 3f * Mathf.Sin((q * 2f + 0.5f) * Mathf.PI * 2f)),
+                ("skirt", 3f + 1.5f * Mathf.Sin((q * 2f + 0.2f) * Mathf.PI * 2f)));
+            // chest forward over the knees: pelvis 9 + chest 9 deg
+            p["hip"] = -9f; p["spine"] = -9f + 1f * sw2;
+            float rr, rf;
+            var fr = FootAt("rear", q, out rr);
+            var ff = FootAt("front", (q + 0.5f) % 1f, out rf);
+            LegIK(animRoot, p, "rear", fr); LegIK(animRoot, p, "front", ff);
+            Flat(p);
+            p["foot_rear"] += rr; p["foot_front"] += rf;
+            // toe caps bend up while the foot is planted toes-down (contact), flat otherwise
+            p["toe_rear"] = Mathf.Max(0f, -rr) * 0.6f; p["toe_front"] = Mathf.Max(0f, -rf) * 0.6f;
+            return p;
+        }
+
+        var cache = new Dictionary<float, Pose>();
+        Pose W(float q) { if (!cache.TryGetValue(q, out var p)) cache[q] = p = At(q); return p; }
+        var tracks = new List<Track>();
+        foreach (var bone in W(0f).Keys.ToList())
+        {
+            string n = bone;
+            tracks.Add(new Track { bone = n, rot = q => W(q).TryGetValue(n, out var v) ? v : 0f });
+        }
+        tracks.Add(new Track { bone = "hip", bobY = q => W(q).bob });
+        return MakeClip("Player_Backpedal_Draft", animRoot, tracks, BackpedalCycle, 24);
+    }
+
+    // Parameters: Backpedal (bool), MoveRate (float, clip speed = |vx| / BackpedalSpeed), MoveDir (float, +1/-1: the
+    // Crouch state's speed, so the crouch walk plays in reverse when she crouch-walks away from the aim).
+    static void EnsureBackpedalState(AnimatorController ctrl, AnimationClip clip)
+    {
+        void Param(string n, AnimatorControllerParameterType t, float def)
+        {
+            if (ctrl.parameters.All(p => p.name != n)) ctrl.AddParameter(new AnimatorControllerParameter { name = n, type = t, defaultFloat = def });
+        }
+        Param("Backpedal", AnimatorControllerParameterType.Bool, 0f);
+        Param("MoveRate", AnimatorControllerParameterType.Float, 1f);
+        Param("MoveDir", AnimatorControllerParameterType.Float, 1f);
+        var sm = ctrl.layers[0].stateMachine;
+        AnimatorState Get(string n) => sm.states.Select(s => s.state).FirstOrDefault(s => s.name == n);
+        var crouch = Get("Crouch");
+        if (crouch != null) { crouch.speedParameterActive = true; crouch.speedParameter = "MoveDir"; }
+        var existing = Get("Backpedal");
+        if (existing != null) { existing.motion = clip; EditorUtility.SetDirty(ctrl); return; }
+
+        var st = sm.AddState("Backpedal"); st.motion = clip; st.speedParameterActive = true; st.speedParameter = "MoveRate";
+        var a = sm.AddAnyStateTransition(st); a.hasExitTime = false; a.duration = 0.1f; a.canTransitionToSelf = false;
+        a.AddCondition(AnimatorConditionMode.If, 0, "Backpedal");
+        a.AddCondition(AnimatorConditionMode.If, 0, "Grounded");
+        a.AddCondition(AnimatorConditionMode.IfNot, 0, "Crouching");
+        a.AddCondition(AnimatorConditionMode.IfNot, 0, "Sliding");
+        a.AddCondition(AnimatorConditionMode.IfNot, 0, "Dashing");
+        var toRun = st.AddTransition(Get("Run")); toRun.hasExitTime = false; toRun.duration = 0.1f;
+        toRun.AddCondition(AnimatorConditionMode.IfNot, 0, "Backpedal"); toRun.AddCondition(AnimatorConditionMode.Greater, 3.5f, "Speed");
+        var toWalk = st.AddTransition(Get("Walk")); toWalk.hasExitTime = false; toWalk.duration = 0.1f;
+        toWalk.AddCondition(AnimatorConditionMode.IfNot, 0, "Backpedal"); toWalk.AddCondition(AnimatorConditionMode.Greater, 0.6f, "Speed");
+        var toIdle = st.AddTransition(Get("Idle")); toIdle.hasExitTime = false; toIdle.duration = 0.12f;
+        toIdle.AddCondition(AnimatorConditionMode.IfNot, 0, "Backpedal");
+        EditorUtility.SetDirty(ctrl);
+        Debug.Log("[PlayerDraftClips] Added Backpedal to " + ControllerPath);
     }
 
     static AnimationClip MakeClip(string name, Transform animRoot, List<Track> tracks, float duration, int samples, bool loop = true)

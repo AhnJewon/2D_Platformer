@@ -53,15 +53,17 @@ public class DashSlideTestDriver : MonoBehaviour
         // teleport in front of the low ceiling and slide under it
         p.transform.position = new Vector3(12.5f, -0.08f, 0); rb.linearVelocity = Vector2.zero; yield return For(0.3f);
         p.scriptedMove = 1f; p.scriptedRun = true; yield return For(0.25f);
-        seen.Clear(); p.scriptedDown = true; p.PressDash(); yield return For(0.1f); p.scriptedDown = false;
+        seen.Clear(); p.scriptedDown = true; yield return null; yield return new WaitForFixedUpdate(); p.PressDash(); yield return For(0.1f); p.scriptedDown = false;
         bool spriteSeen = false; float t2 = 0; float minTop = 99f;
-        int shots = 0;
+        int shots = 0; float onTime = 0f; bool midShot = false;
         while (t2 < 1.6f)
         {
             Track();
             var ss = GameObject.Find("SlideSprite");
             bool on = ss && ss.GetComponent<SpriteRenderer>().enabled;
             spriteSeen |= on;
+            if (on) onTime += Time.deltaTime;
+            if (on && !midShot && onTime > 0.25f) { yield return new WaitForEndOfFrame(); Snap(p.transform.position.x, "slide_mid"); midShot = true; }
             minTop = Mathf.Min(minTop, p.GetComponent<Collider2D>().bounds.max.y);
             // snapshots: just before the swap (rig), during the slide (sprite), just after (rig)
             string st = State();

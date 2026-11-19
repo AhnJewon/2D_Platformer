@@ -1244,6 +1244,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1267005345151392740, guid: 5b86f7981f4c307479c375af4e7aff87, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1064957063}
+    - targetCorrespondingSourceObject: {fileID: 1267005345151392740, guid: 5b86f7981f4c307479c375af4e7aff87, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1064957064}
   m_SourcePrefab: {fileID: 100100000, guid: 5b86f7981f4c307479c375af4e7aff87, type: 3}
 --- !u!1 &1064957055 stripped
 GameObject:
@@ -1270,6 +1273,7 @@ MonoBehaviour:
   ghostInterval: 0.035
   ghostLife: 0.22
   ghostColor: {r: 0.55, g: 0.8, b: 1, a: 0.6}
+  slideGhostInterval: 0.045
   poolSize: 8
   lineColor: {r: 1, g: 1, b: 1, a: 0.7}
   dustColor: {r: 0.75, g: 0.75, b: 0.8, a: 0.6}
@@ -1410,45 +1414,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47eeb707618f75341af330c5d9e51b51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCombat
-  weaponData: {fileID: 11400000, guid: 051cb46b887d9b84894751a4031b63c3, type: 2}
-  gunData: {fileID: 11400000, guid: 9bf815774c7904549856b08c1187e28e, type: 2}
+  weapons:
+  - {fileID: 11400000, guid: 051cb46b887d9b84894751a4031b63c3, type: 2}
+  - {fileID: 11400000, guid: 9bf815774c7904549856b08c1187e28e, type: 2}
   slot: 0
-  weaponSprite: {fileID: 21300000, guid: b70140f5b9d07b543b6947731697aec3, type: 3}
-  slashSprite: {fileID: 21300000, guid: 7ee8c8022c5dfef4fadbc4cb7988439b, type: 3}
   weaponSortingOrder: 26
-  flipWeapon: 0
-  slashColor: {r: 1, g: 1, b: 1, a: 1}
-  damage: 10
-  swingTime: 0.3
-  windUp: 0.045
-  strike: 0.075
-  attackInterval: 0.32
-  restAngle: 70
-  restLow: 25
-  windUpExtra: 25
-  overshoot: 10
-  reach: 2.1
-  arcHalf: 80
-  knockback: 5
-  hitStop: 0.05
-  lungeSpeed: 3.5
-  airHang: 1.5
-  armFollow: 0.4
-  bladeToForearmMin: 25
-  bladeToForearmMax: 110
-  pelvisLean: 12
-  pelvisRise: 4
-  lungeStride: 0.5
-  lungeBack: 0.35
-  lungeDrop: 0.22
-  freeHandPoses: 0
-  freeHandOnHip: 1
   facingDeadZone: 0.12
-  armReach: 0.62
-  inlineGripDist: 0.17
-  useInlineGrip: 0
-  gripBladeOffset: 77.4
-  gripLocal: {x: 0.158, y: -0.019}
+  freeHandPoses: 0
 --- !u!114 &1064957063
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1474,6 +1446,28 @@ MonoBehaviour:
   - name: Grip
     sprite: {fileID: 21300000, guid: d3ce096ce9e4f91438cfa81df3bb3105, type: 3}
     spriteAxis: -10.3
+--- !u!114 &1064957064
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1064957055}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24f1635dd23ba704fb4cec0f72f62190, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Crosshair
+  size: 0.045
+  gap: 0.03
+  bloom: 0.035
+  thickness: 0.009
+  bloomTime: 0.18
+  color: {r: 1, g: 1, b: 1, a: 0.95}
+  outline: {r: 0.05, g: 0.07, b: 0.12, a: 0.85}
+  emptyColor: {r: 1, g: 0.3, b: 0.25, a: 0.95}
+  reloadColor: {r: 0.45, g: 0.95, b: 1, a: 0.95}
+  hideSystemCursor: 1
 --- !u!1 &1253898754
 GameObject:
   m_ObjectHideFlags: 0

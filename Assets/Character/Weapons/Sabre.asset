@@ -13,10 +13,19 @@ MonoBehaviour:
   m_Name: Sabre
   m_EditorClassIdentifier: Assembly-CSharp::MeleeWeapon
   sprite: {fileID: 21300000, guid: b70140f5b9d07b543b6947731697aec3, type: 3}
-  slashSprite: {fileID: 21300000, guid: 7ee8c8022c5dfef4fadbc4cb7988439b, type: 3}
+  flipSprite: 0
   gripPose: Grip
   gripBladeOffset: 77.4
   gripLocal: {x: 0.158, y: -0.019}
+  wristMin: 40
+  wristMax: 125
+  armReach: 0.62
+  crosshair: 0
+  slashSprite: {fileID: 21300000, guid: 7ee8c8022c5dfef4fadbc4cb7988439b, type: 3}
+  slashColor: {r: 1, g: 1, b: 1, a: 1}
+  restArmFollow: 0.4
+  freeArmSwing: 1
+  airHang: 1.5
   guardHigh: 70
   comboWindow: 0.4
   cancelAt: 0.5

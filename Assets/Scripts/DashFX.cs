@@ -26,7 +26,7 @@ public class DashFX : MonoBehaviour
     // pivot x 682 px): heels ~1100 px, dragging hand/coat ~350 px
     public float heelX = 1.0f, handX = -0.75f;
 
-    class Ghost { public GameObject go; public Transform[] bones; public SpriteRenderer[] renderers; public float age = 99f; }
+    class Ghost { public GameObject go; public Transform[] bones; public SpriteRenderer[] renderers, sources; public float age = 99f; }
     class SpriteGhost { public SpriteRenderer sr; public float age = 99f; }
     readonly List<SpriteGhost> spritePool = new List<SpriteGhost>();
     SlideVisual slideVisual;
@@ -57,13 +57,18 @@ public class DashFX : MonoBehaviour
             foreach (var mb in copy.GetComponentsInChildren<MonoBehaviour>(true))
                 if (!(mb is UnityEngine.U2D.Animation.SpriteSkin)) mb.enabled = false;
             var g = new Ghost { go = copy, bones = copy.GetComponentsInChildren<Transform>(true) };
-            var rs = new List<SpriteRenderer>();
-            foreach (var r in copy.GetComponentsInChildren<SpriteRenderer>(true))
+            // each ghost renderer is paired with the live one (same hierarchy order), so a spawn copies what is shown NOW:
+            // the weapon in hand, swapped hand drawings, hidden parts
+            var rs = new List<SpriteRenderer>(); var src = new List<SpriteRenderer>();
+            var copies = copy.GetComponentsInChildren<SpriteRenderer>(true);
+            var lives = model.GetComponentsInChildren<SpriteRenderer>(true);
+            for (int k = 0; k < copies.Length; ++k)
             {
+                var r = copies[k];
                 if (r.name == "SlideSprite") { r.enabled = false; continue; }
-                r.sortingOrder -= 100; rs.Add(r);
+                r.sortingOrder -= 100; rs.Add(r); src.Add(k < lives.Length ? lives[k] : null);
             }
-            g.renderers = rs.ToArray();
+            g.renderers = rs.ToArray(); g.sources = src.ToArray();
             copy.SetActive(false);
             pool.Add(g);
         }
@@ -187,7 +192,12 @@ public class DashFX : MonoBehaviour
             g.bones[i].localScale = liveBones[i].localScale;
         }
         g.age = 0f;
-        foreach (var r in g.renderers) r.color = ghostColor;
+        for (int i = 0; i < g.renderers.Length; ++i)
+        {
+            var r = g.renderers[i]; var l = g.sources[i];
+            if (l != null) { r.sprite = l.sprite; r.flipX = l.flipX; r.flipY = l.flipY; r.enabled = l.enabled && l.sprite != null; }
+            r.color = ghostColor;
+        }
         g.go.SetActive(true);
     }
 

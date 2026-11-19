@@ -78,7 +78,7 @@ public class CombatTestDriver : MonoBehaviour
         yield return For(0.5f);
 
         // ---- gun: 5 shots at the dummy from 4 u, then empty the magazine -> automatic reload ----
-        if (c.gunData != null)
+        if (c.GunData != null)
         {
             c.SetSlot(1);
             p.transform.position = new Vector3(dx - 4f, 0f, 0); rb.linearVelocity = Vector2.zero;
@@ -88,8 +88,8 @@ public class CombatTestDriver : MonoBehaviour
             yield return For(0.4f);
             sb.Append($"gun: shots={c.ShotCount - s0} dummy hits={near.hits - h0} (expect 5) ammo {a0}->{c.Ammo}\n");
             int guard = 0; while (c.Ammo > 0 && guard++ < 40) { c.PressAttack(); yield return For(0.18f); }
-            yield return For(c.emptyReloadDelay + 0.1f); bool reloading = c.Reloading; yield return For(c.gunData.reloadTime + 0.2f);
-            sb.Append($"gun: empty -> reloading={reloading}, after reload ammo={c.Ammo} (expect {c.gunData.magazine})\n");
+            yield return For(c.GunData.emptyReloadDelay + 0.1f); bool reloading = c.Reloading; yield return For(c.GunData.reloadTime + 0.2f);
+            sb.Append($"gun: empty -> reloading={reloading}, after reload ammo={c.Ammo} (expect {c.GunData.magazine})\n");
             // facing left
             p.transform.position = new Vector3(dx + 4f, 0f, 0); rb.linearVelocity = Vector2.zero;
             c.scriptedAim = new Vector2(dx, 1.4f); yield return For(0.4f); h0 = near.hits;
@@ -191,7 +191,7 @@ public class CombatTestDriver : MonoBehaviour
                 return null;
             });
             // gun: shooting while the cursor sweeps over the dummy, then backpedalling while shooting
-            if (c.gunData != null)
+            if (c.GunData != null)
             {
                 c.SetSlot(1);
                 p.transform.position = new Vector3(dx - 3.5f, 0f, 0); rb.linearVelocity = Vector2.zero; yield return For(0.3f);

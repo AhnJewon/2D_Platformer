@@ -1,8 +1,8 @@
 using System;
 using UnityEngine;
 
-// A melee weapon's look, grip and attack set (combo). PlayerCombat plays its steps in order: clicking again during
-// a step, or within comboWindow after it, continues the combo; otherwise it starts over from step 0.
+// A melee weapon's attack set (combo); played by MeleeCombo (WeaponData.cs explains the module split). Its steps run
+// in order: clicking again during a step, or within comboWindow after it, continues the combo; otherwise step 0.
 // Angles are the blade's offset from the aim line in degrees (+ = above the aim, toward the head).
 // Sabre / longsword set (ArtSource/references/combat_backpedal_reference.md, "Combo"):
 //   1 Cut        - overhead to forward-low diagonal cut with a step (Mega Man Zero 3 ground slash, kendo men)
@@ -11,7 +11,7 @@ using UnityEngine;
 //   3 Rising cut - from low behind the hip up to high, the body rising with it (longsword Unterhau: step in, cut up
 //                  from the hip to the opposite shoulder, ends high); the finisher: more damage, knock-up, longer stop
 [CreateAssetMenu(menuName = "Combat/Melee Weapon")]
-public class MeleeWeapon : ScriptableObject
+public class MeleeWeapon : WeaponData
 {
     public enum Kind { Cut, Thrust, RisingCut }
     public enum Fx { Arc, Streak, None }
@@ -44,18 +44,21 @@ public class MeleeWeapon : ScriptableObject
         public float fxScale = 1f;
     }
 
-    public Sprite sprite;
+    [Header("Effects")]
     public Sprite slashSprite;
-    [Header("Grip (HandPoses drawing)")]
-    public string gripPose = "Grip";
-    public float gripBladeOffset = 77.4f;                    // hilt angle from the drawing's wrist->knuckle axis
-    public Vector2 gripLocal = new Vector2(0.158f, -0.019f); // hilt centre from the wrist, in the hand frame (u)
+    public Color slashColor = Color.white;
+    [Header("Body")]
+    public float restArmFollow = 0.4f;      // between steps: how far the arm leans toward the blade
+    public float freeArmSwing = 1f;         // the free arm swings back while attacking (0 = leave the animation)
+    public float airHang = 1.5f;            // in the air: vertical speed floor at the strike (once per jump)
     [Header("Guards and combo")]
     public float guardHigh = 70f;           // rest: blade this far above the aim
     public float comboWindow = 0.4f;        // after a step ends, a click within this continues the combo
     [Range(0, 1)] public float cancelAt = 0.5f;   // the next step may start after this much of the recovery
     public float returnTime = 0.3f;         // after the combo ends, back to the high guard in this time
     public Step[] combo = DefaultSabre();
+
+    public override WeaponBehaviour CreateBehaviour(PlayerCombat owner) => new MeleeCombo(owner, this);
 
     public static Step[] DefaultSabre() => new[]
     {

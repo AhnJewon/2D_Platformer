@@ -1,29 +1,30 @@
 using UnityEngine;
 
-// A gun's look, grip and handling. PlayerCombat holds it in the near hand (HandPoses "Grip" drawing) and aims the
-// barrel straight at the cursor. References (ArtSource/references/ranged_reference.md):
+// A gun's handling; played by GunBehaviour (WeaponData.cs explains the module split). The near hand holds it
+// (HandPoses "Grip" drawing) and aims the barrel straight at the cursor. References (ArtSource/references/ranged_reference.md):
 //   - one-handed bullseye stance: body bladed, arm nearly straight (not locked), wrist firm -> armReach ~0.72, small
 //     wrist range around the hand's natural line
 //   - side-view run'n'gun (SLYNYRD Pixelblog 60): the shooting pose is an upper-body layer over any leg animation;
 //     recoil = the arm shortens for a frame and the muzzle rises, then returns
 //   - game feel (Vlambeer "The Art of Screenshake"): big fast bullets, muzzle flash, small screen shake, kickback
 [CreateAssetMenu(menuName = "Combat/Ranged Weapon")]
-public class RangedWeapon : ScriptableObject
+public class RangedWeapon : WeaponData
 {
+    // gun defaults for the shared fields (a fist holding a pistol grip: the barrel close to the forearm line)
+    public RangedWeapon()
+    {
+        gripBladeOffset = 8.4f; wristMin = -12f; wristMax = 28f; armReach = 0.72f; crosshair = CrosshairStyle.Cross;
+    }
+
     public enum Stance { OneHand, Weaver, Isosceles }
 
-    [Header("Art")]
-    public Sprite sprite;            // pivot = middle of the grip
+    [Header("Gun art")]
     public Sprite boltSprite;        // pivot = the bolt's head
     public Sprite muzzleFlashSprite; // pivot = the flash's origin
     public Vector2 muzzle = new Vector2(0.46f, 0.18f);   // muzzle in the sprite's space (u from the pivot, barrel = +X): the upper front nub
 
-    [Header("Grip")]
-    public string gripPose = "Grip";
-    public float gripBladeOffset = 8.4f;     // barrel angle - the drawing's wrist->knuckle axis (grip ~69 deg vs 77 in the fist)
-    public Vector2 gripLocal = new Vector2(0.158f, -0.019f);
-    public float wristMin = -12f, wristMax = 28f;   // barrel relative to the forearm
-    public float armReach = 0.72f;           // shoulder -> wrist while aiming (nearly straight)
+    public Vector2 vent = new Vector2(0.042f, 0.194f);   // smoke vent while reloading (sprite space, u)
+    public bool cellGauge = true;            // the energy cell on the art shows the ammo (GunCellGauge)
 
     [Header("Stance")]
     // OneHand: bullseye (arm nearly straight). Weaver: shooting arm extended, support arm bent with the elbow down,
@@ -39,6 +40,7 @@ public class RangedWeapon : ScriptableObject
     public float fireInterval = 0.16f;
     public int magazine = 12;
     public float reloadTime = 0.9f;
+    public float emptyReloadDelay = 0.3f;    // empty: show it (red cell) for a beat, then reload by itself
     public float damage = 6f, knockback = 2.5f;
     public float boltSpeed = 26f, range = 18f;
     public float spread = 1.5f;              // deg, random either side
@@ -52,4 +54,6 @@ public class RangedWeapon : ScriptableObject
     public float kickLean = 1.5f;            // chest leans back (upper body only)
     public float pushBack = 0f;              // player pushed back (u/s) - 0 for a pistol
     public float shake = 0.05f, shakeTime = 0.08f;
+
+    public override WeaponBehaviour CreateBehaviour(PlayerCombat owner) => new GunBehaviour(owner, this);
 }

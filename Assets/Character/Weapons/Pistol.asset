@@ -13,15 +13,19 @@ MonoBehaviour:
   m_Name: Pistol
   m_EditorClassIdentifier: Assembly-CSharp::RangedWeapon
   sprite: {fileID: 21300000, guid: 3c1177ef7d456074cb6e454b8d880210, type: 3}
-  boltSprite: {fileID: 21300000, guid: 4c44ed528785f584c9a709680a20c99e, type: 3}
-  muzzleFlashSprite: {fileID: 21300000, guid: 2f2057141c449ae40830bef1556919e8, type: 3}
-  muzzle: {x: 0.46, y: 0.18}
+  flipSprite: 0
   gripPose: Grip
   gripBladeOffset: 8.4
   gripLocal: {x: 0.158, y: -0.019}
   wristMin: -12
   wristMax: 28
   armReach: 0.72
+  crosshair: 1
+  boltSprite: {fileID: 21300000, guid: 4c44ed528785f584c9a709680a20c99e, type: 3}
+  muzzleFlashSprite: {fileID: 21300000, guid: 2f2057141c449ae40830bef1556919e8, type: 3}
+  muzzle: {x: 0.46, y: 0.18}
+  vent: {x: 0.042, y: 0.194}
+  cellGauge: 1
   stance: 1
   supportGrip: {x: -0.03, y: -0.07}
   twoHandRecoil: 0.55
@@ -30,6 +34,7 @@ MonoBehaviour:
   fireInterval: 0.16
   magazine: 12
   reloadTime: 0.9
+  emptyReloadDelay: 0.3
   damage: 6
   knockback: 2.5
   boltSpeed: 26

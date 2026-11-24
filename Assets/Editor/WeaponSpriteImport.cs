@@ -2,10 +2,10 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-// Import settings for the loose sprites: Assets/Character/Weapons/*.png (sabre, slash, dummy) and
-// Assets/Character/Hands/*.png (NAI glove poses).
-// Source of truth: ArtSource/Sprites/<name>.xcf (Tools/make_sprite_files.py), written to the PNG by
-// Tools/update_sprites.py. ArtSource/Sprites/sprites.json gives each sprite's px/unit and its pivot in canvas pixels
+// Import settings for the loose sprites: Assets/Weapons/*.png, Assets/Props/*.png and each character's
+// Assets/Characters/<Name>/Hands|Face/*.png.
+// Source of truth: <set>/Sprites/<name>.xcf under ArtSource (Characters/<Name>, Weapons, Props), written to the PNG by
+// Tools/update_sprites.py. That set's sprites.json gives each sprite's px/unit and its pivot in canvas pixels
 // (the REF pivot cross in the XCF): wrist for hands, middle of the grip for the sabre, centre of the swing for the
 // slash, bottom of the base for the dummy. The values below are only used for a PNG that is not listed there.
 public class WeaponSpriteImport : AssetPostprocessor
@@ -15,12 +15,19 @@ public class WeaponSpriteImport : AssetPostprocessor
     static bool FromJson(string assetPath, out float ppu, out Vector2 pivot)
     {
         ppu = 400f; pivot = new Vector2(0.5f, 0.5f);
-        string path = Path.Combine(Path.GetDirectoryName(Application.dataPath), "ArtSource/Sprites/sprites.json");
-        if (!File.Exists(path)) return false;
-        // tiny reader for {"Name": {"dst": "...", "ppu": n, "pivot": [x, y], "size": [w, h]}, ...}
-        string json = File.ReadAllText(path);
-        int i = json.IndexOf("\"" + assetPath + "\"");
-        if (i < 0) return false;
+        string art = Path.Combine(Path.GetDirectoryName(Application.dataPath), "ArtSource");
+        if (!Directory.Exists(art)) return false;
+        // tiny reader for {"Name": {"dst": "...", "ppu": n, "pivot": [x, y], "size": [w, h]}, ...}; the entry whose dst is
+        // this asset, in any sprites.json (skipping backups)
+        string json = null; int i = -1;
+        foreach (var path in Directory.GetFiles(art, "sprites.json", SearchOption.AllDirectories))
+        {
+            if (path.Replace('\\', '/').Contains("/backups/")) continue;
+            var text = File.ReadAllText(path);
+            int k = text.IndexOf("\"" + assetPath + "\"");
+            if (k >= 0) { json = text; i = k; break; }
+        }
+        if (json == null) return false;
         int start = json.LastIndexOf('{', i), end = json.IndexOf('}', i);
         var e = JsonUtility.FromJson<Entry>(json.Substring(start, end - start + 1));
         if (e == null || e.pivot == null || e.size == null || e.size.Length < 2) return false;
@@ -31,8 +38,8 @@ public class WeaponSpriteImport : AssetPostprocessor
 
     void OnPreprocessTexture()
     {
-        bool hands = assetPath.StartsWith("Assets/Character/Hands/");
-        if (!assetPath.StartsWith("Assets/Character/Weapons/") && !hands) return;
+        bool hands = assetPath.StartsWith("Assets/Characters/") && (assetPath.Contains("/Hands/") || assetPath.Contains("/Face/"));
+        if (!assetPath.StartsWith("Assets/Weapons/") && !assetPath.StartsWith("Assets/Props/") && !hands) return;
         var ti = (TextureImporter)assetImporter;
         ti.textureType = TextureImporterType.Sprite;
         ti.spriteImportMode = SpriteImportMode.Single;

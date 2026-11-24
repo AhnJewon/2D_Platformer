@@ -4,7 +4,7 @@ using UnityEngine;
 // A melee weapon's attack set (combo); played by MeleeCombo (WeaponData.cs explains the module split). Its steps run
 // in order: clicking again during a step, or within comboWindow after it, continues the combo; otherwise step 0.
 // Angles are the blade's offset from the aim line in degrees (+ = above the aim, toward the head).
-// Sabre / longsword set (ArtSource/references/combat_backpedal_reference.md, "Combo"):
+// Sabre / longsword set (ArtSource/References/combat_backpedal_reference.md, "Combo"):
 //   1 Cut        - overhead to forward-low diagonal cut with a step (Mega Man Zero 3 ground slash, kendo men)
 //   2 Thrust     - arm pulled back, then fully extended straight at the aim with a long lunge (fencing lunge: the sword
 //                  arm extends first, the front foot lands with the touch, rear leg straight)

@@ -1,4 +1,4 @@
-"""Draws the placeholder weapon art in Assets/Character/Weapons at the rig's scale (400 px/unit):
+"""Draws the placeholder weapon art in Assets/Weapons at the rig's scale (400 px/unit):
  - Saber.png: an officer's sabre to match the military coat - slightly curved silver blade, gold knuckle-bow guard,
    navy grip. Drawn pointing +X, grip at the left; the import pivot (WeaponSpriteImport.cs) is the middle of the grip.
  - Slash.png: the crescent swing trail (white, alpha fades toward the tail and the inner edge), drawn for a
@@ -10,7 +10,7 @@ import math, os
 from PIL import Image, ImageDraw
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DST = os.path.join(ROOT, 'Assets', 'Character', 'Weapons')
+DST = os.path.join(ROOT, 'Assets', 'Weapons')
 SS = 4
 INK = (38, 32, 46, 255)
 

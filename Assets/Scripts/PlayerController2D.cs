@@ -130,6 +130,7 @@ public class PlayerController2D : MonoBehaviour
             dashDown |= pad.rightShoulder.wasPressedThisFrame;
         }
         if (scriptedMove.HasValue) { x = scriptedMove.Value; walkHeld = !scriptedRun; jumpHeld = scriptedJumpHeld; downHeld = scriptedDown; }
+        if (IsStunned) { x = 0f; jumpDown = false; dashDown = false; downHeld = false; }   // knocked back: no control
         moveInput = x;
         if (jumpDown) lastJumpPressed = Time.time;
         if (dashDown) lastDashPressed = Time.time;
@@ -167,6 +168,19 @@ public class PlayerController2D : MonoBehaviour
     // scripted presses (tests)
     public void PressJump(bool hold = true) { lastJumpPressed = Time.time; jumpHeld = hold; scriptedJumpHeld = hold; }
     public void PressDash() { lastDashPressed = Time.time; }
+
+    // Hit: knocked back with `velocity` and no control for `seconds` (a dash or slide is cut short; she stands up).
+    float stunUntil = -10f;
+    public bool IsStunned => Time.time < stunUntil;
+    public void Knockback(Vector2 velocity, float seconds)
+    {
+        if (mode == Mode.Dash) { mode = Mode.Normal; nextDash = Time.time + dashCooldown; }
+        if (mode == Mode.Slide && !CeilingBlocked(standSize.y)) EndSlide();
+        stunUntil = Time.time + seconds;
+        rb.linearVelocity = velocity;
+        if (velocity.y > 0.1f) { grounded = false; jumping = true; lastGrounded = -1f; }
+        lastJumpPressed = lastDashPressed = -1f;
+    }
 
     // attack step (PlayerCombat): on the ground a short push toward the aim (bleeds off with groundAccel); in the air a
     // brief hang - the fall is stopped once per jump, like the air slashes in most action platformers.
@@ -248,7 +262,7 @@ public class PlayerController2D : MonoBehaviour
         float speed = crouching ? crouchSpeed : walkHeld || forceWalk ? walkSpeed : runSpeed;
         if (backpedal && !crouching) speed = Mathf.Min(speed, backpedalSpeed);
         float target = moveInput * speed;
-        float accel = grounded ? groundAccel : airAccel;
+        float accel = IsStunned ? (grounded ? 8f : 2f) : grounded ? groundAccel : airAccel;   // knockback slides out
         v.x = Mathf.MoveTowards(v.x, target, accel * dt);
 
         // jump with coyote time and input buffer

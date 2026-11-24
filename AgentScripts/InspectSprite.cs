@@ -1,7 +1,7 @@
 using System.Linq; using UnityEditor; using UnityEditor.U2D.Animation; using UnityEditor.U2D.Sprites; using UnityEngine;
 public static class InspectSprite {
   public static string Run() {
-    string psb = "Assets/Character/Player.psb"; var sb = new System.Text.StringBuilder();
+    string psb = "Assets/Characters/Officer/Player.psb"; var sb = new System.Text.StringBuilder();
     var f = new SpriteDataProviderFactories(); f.Init(); var dp = f.GetSpriteEditorDataProviderFromObject(AssetImporter.GetAtPath(psb)); dp.InitSpriteEditorDataProvider();
     var cd = dp.GetDataProvider<ICharacterDataProvider>().GetCharacterData(); var mp = dp.GetDataProvider<ISpriteMeshDataProvider>();
     foreach (var n in new[]{"15_head_face","15b_neck","17_cap"}) {

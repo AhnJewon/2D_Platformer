@@ -1,5 +1,5 @@
-"""Cuts the NovelAI glove poses (ArtSource/NAI_V5_rig_v3/hands, NAI v4.5 full, 1024x1024 on white) into
-Assets/Character/Hands/Hand_<Name>.png, pivot at the WRIST, scaled to the rig (400 px/unit, the drawn fist is 0.27 u).
+"""Cuts the NovelAI glove poses (ArtSource/Characters/Officer/Source/hands, NAI v4.5 full, 1024x1024 on white) into
+Assets/Characters/Officer/Hands/Hand_<Name>.png, pivot at the WRIST, scaled to the rig (400 px/unit, the drawn fist is 0.27 u).
 Per pose: crop box, wrist point, tip point (end of the hand: knuckles for a fist, middle fingertip for an open hand) and
 the hand length in units. The glove colour is matched to the rig's drawn glove (mean ~ (37, 38, 49)).
 Skin (arm above the glove) and anything outside the crop are removed.
@@ -11,8 +11,8 @@ import numpy as np
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(ROOT, 'ArtSource', 'NAI_V5_rig_v3', 'hands')
-DST = os.path.join(ROOT, 'Assets', 'Character', 'Hands')
+SRC = os.path.join(ROOT, 'ArtSource', 'Characters', 'Officer', 'Source', 'hands')
+DST = os.path.join(ROOT, 'Assets', 'Characters', 'Officer', 'Hands')
 PPU = 400.0
 RIG_GLOVE = np.array([37.0, 38.0, 49.0])
 

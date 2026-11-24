@@ -1,5 +1,5 @@
-"""Cuts the NovelAI sabre (ArtSource/NAI_V5_rig_v3/weapons/sabre_nai45_seed44120.png, NAI v4.5 full, 1536x640, white
-background, grip on the left, straight blade to the right, bow guard above and below the grip) into Assets/Character/Weapons/Saber.png.
+"""Cuts the NovelAI sabre (ArtSource/Weapons/Source/sabre_nai45_seed44120.png, NAI v4.5 full, 1536x640, white
+background, grip on the left, straight blade to the right, bow guard above and below the grip) into Assets/Weapons/Saber.png.
  - removes the white background (flood fill from the borders) and the white enclosed by the knuckle bow
  - un-blends the anti-aliased rim from white
  - crops and scales so the whole sabre is LENGTH_U units long at the rig's 400 px/unit
@@ -11,8 +11,8 @@ import numpy as np
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(ROOT, 'ArtSource', 'NAI_V5_rig_v3', 'weapons', 'sabre_nai45_seed44120.png')
-DST = os.path.join(ROOT, 'Assets', 'Character', 'Weapons', 'Saber.png')
+SRC = os.path.join(ROOT, 'ArtSource', 'Weapons', 'Source', 'sabre_nai45_seed44120.png')
+DST = os.path.join(ROOT, 'Assets', 'Weapons', 'Saber.png')
 LENGTH_U = 1.8           # a real sabre is ~0.55x the wielder's height; she is ~3.3 u tall
 GRIP = (210, 340)        # middle of the navy grip in the source (where the fist closes)
 

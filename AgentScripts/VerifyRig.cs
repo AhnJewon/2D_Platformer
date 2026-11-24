@@ -2,10 +2,10 @@ using System.Linq; using System.Text; using UnityEditor; using UnityEngine; usin
 public static class VerifyRig {
   public static string Run() {
     var sb = new StringBuilder();
-    foreach (var o in AssetDatabase.LoadAllAssetsAtPath("Assets/Character/Player.psb")) if (o is Sprite s)
+    foreach (var o in AssetDatabase.LoadAllAssetsAtPath("Assets/Characters/Officer/Player.psb")) if (o is Sprite s)
       sb.Append(s.name).Append(" bones=").Append(s.GetBones().Length).Append(" verts=").Append(s.GetVertexCount())
         .Append(" weights=").Append(s.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.BlendWeight)).Append('\n');
-    var go = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Character/Player.prefab");
+    var go = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Characters/Officer/Player.prefab");
     sb.Append("prefab=").Append(go != null);
     if (go != null) {
       var skins = go.GetComponentsInChildren<SpriteSkin>(true);

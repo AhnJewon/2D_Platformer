@@ -1,4 +1,4 @@
-"""Make the slide sprite in Assets/Character/Slide from the pose the user chose: sitting slide, far knee up, hand on
+"""Make the slide sprite in Assets/Characters/Officer/Slide from the pose the user chose: sitting slide, far knee up, hand on
 the cap. Default source: the original baseball_slide_sketch_pose_rgba.png (1376x768, transparent, ~0.864x the rig's
 pixel scale -> 346 px/unit). Optional --sheet: the half-size 2x2 sheet slide_kneeup_4frames.webp (4 frames).
  - cuts the 4 frames (688x384 each), removes the flat light background (flood fill from the borders, so the
@@ -11,9 +11,9 @@ import numpy as np
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(ROOT, 'ArtSource', 'NAI_V5_rig_v3', 'slide_frames', 'slide_kneeup_4frames.webp')
-ORIGINAL = os.path.join(ROOT, 'ArtSource', 'NAI_V5_rig_v3', 'slide_frames', 'baseball_slide_sketch_pose_rgba.png')
-DST = os.path.join(ROOT, 'Assets', 'Character', 'Slide')
+SRC = os.path.join(ROOT, 'ArtSource', 'Characters', 'Officer', 'Source', 'slide_frames', 'slide_kneeup_4frames.webp')
+ORIGINAL = os.path.join(ROOT, 'ArtSource', 'Characters', 'Officer', 'Source', 'slide_frames', 'baseball_slide_sketch_pose_rgba.png')
+DST = os.path.join(ROOT, 'Assets', 'Characters', 'Officer', 'Slide')
 TARGET_HUE = 212 / 360.0   # rig lining (#194c87)
 VALUE_SCALE = 135 / 207.0  # rig lining median value / sheet lining median value
 TOL = 18                   # background tolerance (max channel difference)

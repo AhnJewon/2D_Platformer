@@ -4,7 +4,7 @@ using UnityEngine;
 // Put it on the Player; it creates a "SlideSprite" child under the model (so it flips with her facing).
 public class SlideVisual : MonoBehaviour
 {
-    public Sprite[] frames;          // Assets/Character/Slide/Slide_00..03
+    public Sprite[] frames;          // Assets/Characters/Officer/Slide/Slide_00..03
     public float fps = 12f;
     public int sortingOrder = 30;    // drawn like the rig (rig parts use 0..29)
 

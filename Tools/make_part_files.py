@@ -1,4 +1,4 @@
-"""Create ArtSource/Parts/<part>.xcf (one GIMP file per part) from the current ArtSource/layers.
+"""Create ArtSource/Characters/Officer/Rig/Parts/<part>.xcf (one GIMP file per part) from the current ArtSource/Characters/Officer/Rig/layers.
 Existing part files are left untouched. Usage: python Tools/make_part_files.py"""
 import json, os, shutil, sys, tempfile
 import numpy as np
@@ -8,7 +8,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, 'Tools'))
 import gimp_run
 
-ART = os.path.join(ROOT, 'ArtSource')
+import project_paths as P
+ART = P.rig_dir()            # ArtSource/Characters/<Name>/Rig
 src = json.load(open(os.path.join(ART, 'parts_source.json'), encoding='utf-8'))
 parts_dir = os.path.join(ROOT, src['parts'])
 os.makedirs(parts_dir, exist_ok=True)

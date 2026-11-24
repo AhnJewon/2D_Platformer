@@ -1,5 +1,5 @@
-"""Create ArtSource/Sprites/<name>.xcf (one GIMP file per loose sprite: hand poses, sabre, slash, dummy) and
-ArtSource/Sprites/sprites.json. Existing XCF files are left untouched.
+"""Create <set>/Sprites/<name>.xcf (one GIMP file per loose sprite) and that set's sprites.json; sets are
+ArtSource/Characters/<Name>/Sprites (hands), ArtSource/Weapons/Sprites, ArtSource/Props/Sprites. Existing XCF files are left untouched.
 
 The sprite layer is the UNTOUCHED NovelAI original (full source resolution, every pixel kept) with the cut-out as a
 GIMP layer mask (Tools/sprite_masks.py: background removal, erased hilt stubs, tail fade). Fix a wrong cut by painting
@@ -17,16 +17,20 @@ from PIL import Image, ImageDraw
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, 'Tools'))
-import gimp_run, sprite_masks
+import gimp_run, sprite_masks, project_paths as PP
 
-OUT = os.path.join(ROOT, 'ArtSource', 'Sprites')
 NAI = sprite_masks.NAI
-PARTS = os.path.join(NAI, 'parts_cropped_filled')
+PARTS = os.path.join(PP.source_dir(), 'parts_cropped_filled')
 RIG_PPU = 400.0
 
-DST = {'Hand_Grip': 'Hands/Hand_Grip.png', 'Hand_Open': 'Hands/Hand_Open.png', 'Hand_Spread': 'Hands/Hand_Spread.png',
-       'Saber': 'Weapons/Saber.png', 'Slash': 'Weapons/Slash.png', 'Dummy': 'Weapons/Dummy.png',
-       'Pistol': 'Weapons/Pistol.png', 'Bolt': 'Weapons/Bolt.png', 'MuzzleFlash': 'Weapons/MuzzleFlash.png'}
+# name: (Sprites folder, Unity destination)
+_C = 'Assets/Characters/%s/' % PP.CHARACTER
+DST = {'Hand_Grip': (PP.sprites_dir(), _C + 'Hands/Hand_Grip.png'), 'Hand_Open': (PP.sprites_dir(), _C + 'Hands/Hand_Open.png'),
+       'Hand_Spread': (PP.sprites_dir(), _C + 'Hands/Hand_Spread.png'),
+       'Saber': (os.path.join(PP.WEAPONS, 'Sprites'), 'Assets/Weapons/Saber.png'), 'Slash': (os.path.join(PP.WEAPONS, 'Sprites'), 'Assets/Weapons/Slash.png'),
+       'Pistol': (os.path.join(PP.WEAPONS, 'Sprites'), 'Assets/Weapons/Pistol.png'), 'Bolt': (os.path.join(PP.WEAPONS, 'Sprites'), 'Assets/Weapons/Bolt.png'),
+       'MuzzleFlash': (os.path.join(PP.WEAPONS, 'Sprites'), 'Assets/Weapons/MuzzleFlash.png'),
+       'Dummy': (os.path.join(PP.PROPS, 'Sprites'), 'Assets/Props/Dummy.png')}
 HAND_CTX = {   # wrist->tip axis in the drawing (deg), forearm part for the REF sleeve, sabre for Hand_Grip
     'Hand_Grip': dict(axis=-10.3, forearm='12_arm_near_forearm.png', sabre=dict(offset=77.4, grip=(0.158, -0.019))),
     'Hand_Open': dict(axis=-92.4, forearm='10b_arm_far_forearm.png'),
@@ -54,14 +58,20 @@ def scaled(img, k):
     return img.resize((max(1, round(img.width * k)), max(1, round(img.height * k))), Image.LANCZOS)
 
 
-os.makedirs(OUT, exist_ok=True)
-meta_path = os.path.join(OUT, 'sprites.json')
-meta = json.load(open(meta_path, encoding='utf-8')) if os.path.exists(meta_path) else {}
+metas = {}
+def meta_of(d):
+    if d not in metas:
+        mp = os.path.join(d, 'sprites.json')
+        metas[d] = json.load(open(mp, encoding='utf-8')) if os.path.exists(mp) else {}
+    return metas[d]
 tmp = tempfile.mkdtemp(prefix='sprites_')
 jobs = []
 try:
     masks = sprite_masks.all_masks()
     for name, m in masks.items():
+        OUT, dst = DST[name]
+        os.makedirs(OUT, exist_ok=True)
+        meta = meta_of(OUT)
         out = os.path.join(OUT, name + '.xcf')
         if os.path.exists(out) and name in meta: continue      # the XCF is the source: keep it
         src = Image.open(os.path.join(NAI, m['src'])).convert('RGB')
@@ -92,16 +102,16 @@ try:
             g = Image.new('RGBA', (W, H), (0, 0, 0, 0)); ImageDraw.Draw(g).line([(0, P[1]), (W, P[1])], fill=(80, 160, 80, 255), width=3)
             add(g, 'REF ground line (ignored by Unity sync)', opacity=80, locked=True)
         add(cross(W, H, P, max(14, 0.035 * ppu)), 'REF pivot - keep the wrist/grip here (ignored by Unity sync)', locked=True)
-        meta[name] = dict(dst='Assets/Character/' + DST[name], ppu=round(ppu, 3), pivot=[round(P[0], 2), round(P[1], 2)],
-                          size=[W, H], flags=m['flags'], source='ArtSource/NAI_V5_rig_v3/' + m['src'])
+        meta[name] = dict(dst=dst, ppu=round(ppu, 3), pivot=[round(P[0], 2), round(P[1], 2)],
+                          size=[W, H], flags=m['flags'], source='ArtSource/' + m['src'])
         jobs.append(dict(out=out, w=W, h=H, layers=layers))
-    json.dump(meta, open(meta_path, 'w', encoding='utf-8'), indent=1)
+    for d, mt in metas.items(): json.dump(mt, open(os.path.join(d, 'sprites.json'), 'w', encoding='utf-8'), indent=1)
     if jobs:
         json.dump(jobs, open(os.path.join(tmp, 'jobs.json'), 'w', encoding='utf-8'))
         os.environ['SPRITES_TMP'] = tmp
         ok = gimp_run.run('make_sprite_files')
         made = [j['out'] for j in jobs if os.path.exists(j['out'])]
-        print('created %d sprite files in ArtSource/Sprites' % len(made))
+        print('created %d sprite files' % len(made))
         sys.exit(0 if ok and len(made) == len(jobs) else 1)
     print('all sprite files already exist; sprites.json kept')
 finally:

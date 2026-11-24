@@ -1,5 +1,5 @@
-"""Imports the NovelAI-made effect and target art (NAI v4.5 full) into Assets/Character/Weapons:
- - Slash.png from ArtSource/NAI_V5_rig_v3/weapons/slash_nai45_seed5150.png: a glowing crescent on BLACK. Alpha is taken
+"""Imports the NovelAI-made effect and target art (NAI v4.5 full) into Assets/Weapons:
+ - Slash.png from ArtSource/Weapons/Source/slash_nai45_seed5150.png: a glowing crescent on BLACK. Alpha is taken
    from brightness and the colour is un-premultiplied, so it reads the same over any background. The crescent is
    thickest at +X (the aim direction in the game); the outer radius is ~372 px around (545, 532).
  - Dummy.png from dummy_nai45_seed8843.png: straw training dummy on white, background flood-filled out.
@@ -11,8 +11,8 @@ import numpy as np
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(ROOT, 'ArtSource', 'NAI_V5_rig_v3', 'weapons')
-DST = os.path.join(ROOT, 'Assets', 'Character', 'Weapons')
+SRC = os.path.join(ROOT, 'ArtSource', 'Weapons', 'Source')
+DST = os.path.join(ROOT, 'Assets', 'Weapons')
 
 # ---- slash ----
 rgb = np.asarray(Image.open(os.path.join(SRC, 'slash_nai45_seed5150.png')).convert('RGB')).astype(np.float32) / 255.0

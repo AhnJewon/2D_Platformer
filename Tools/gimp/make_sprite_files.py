@@ -1,4 +1,4 @@
-# GIMP 3 batch script (run by Tools/make_sprite_files.py): one XCF per loose sprite in ArtSource/Sprites/.
+# GIMP 3 batch script (run by Tools/make_sprite_files.py): one XCF per loose sprite in ArtSource/Characters/Officer/Sprites/.
 # Each file: the sprite layer (named like the sprite: the NovelAI original + a layer mask) on top + locked "REF ..." layers for context (pivot cross, sleeve,
 # sabre...). Layers whose name starts with "REF" are ignored by Tools/update_sprites.py. Existing files are never
 # overwritten.

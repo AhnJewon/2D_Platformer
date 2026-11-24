@@ -1,19 +1,19 @@
-"""Re-import repainted character parts into Assets/Character/Player.psb WITHOUT touching the rig.
+"""Re-import repainted character parts into Assets/Characters/Officer/Player.psb WITHOUT touching the rig.
 
-  uv run --no-project --with numpy --with pillow python Tools/update_parts.py            # use ArtSource/parts_source.json
-  ... update_parts.py --source parts                                                      # ArtSource/Parts/<part>.xcf|.png (default)
-  ... update_parts.py --source xcf  --xcf  ArtSource/NAI_V5_rig_v3/parts_canvas/UNASSIGNED_review_needed.xcf
-  ... update_parts.py --source pngs --pngs ArtSource/NAI_V5_rig_v3/parts_canvas          # <part>.png, full 832x1216 canvas
+  uv run --no-project --with numpy --with pillow python Tools/update_parts.py            # use ArtSource/Characters/Officer/Rig/parts_source.json
+  ... update_parts.py --source parts                                                      # ArtSource/Characters/Officer/Rig/Parts/<part>.xcf|.png (default)
+  ... update_parts.py --source xcf  --xcf  ArtSource/Characters/Officer/Source/parts_canvas/UNASSIGNED_review_needed.xcf
+  ... update_parts.py --source pngs --pngs ArtSource/Characters/Officer/Source/parts_canvas          # <part>.png, full 832x1216 canvas
 Run it from the project folder. Relative paths are resolved against the project root.
   ... update_parts.py --dry-run                                                           # report only, change nothing
 
 What it does
- 1. Reads the parts: one file per part in ArtSource/Parts (<part>.xcf: visible layers except REF*, or <part>.png),
+ 1. Reads the parts: one file per part in ArtSource/Characters/Officer/Rig/Parts (<part>.xcf: visible layers except REF*, or <part>.png),
     or the master XCF's layers, or one full-canvas PNG per part. For continuous sync use Tools/watch_parts.py.
- 2. Checks the part names match ArtSource/layer_order.json (a new/renamed/removed part needs a rig change: it stops).
+ 2. Checks the part names match ArtSource/Characters/Officer/Rig/layer_order.json (a new/renamed/removed part needs a rig change: it stops).
  3. Backs up Player.psb and Player.psb.meta (the meta holds your bones/mesh/weights) to ArtSource/backups/<time>/.
- 4. Writes the new layer PNGs to ArtSource/layers and rebuilds Player.psb with the SAME layer names, order and
-    locked rects (ArtSource/layer_bounds.json), then asks the open Unity Editor to reimport it.
+ 4. Writes the new layer PNGs to ArtSource/Characters/Officer/Rig/layers and rebuilds Player.psb with the SAME layer names, order and
+    locked rects (ArtSource/Characters/Officer/Rig/layer_bounds.json), then asks the open Unity Editor to reimport it.
 Unity matches layers by name, so each sprite keeps its bones, mesh and weights.
 If a part was painted OUTSIDE its locked rect, the rect grows: the script enlarges that sprite and shifts its existing
 mesh/bones so your skinning stays in place, then rebuilds that sprite's mesh over the new pixels with weights copied
@@ -24,8 +24,10 @@ import numpy as np
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ART = os.path.join(ROOT, 'ArtSource')
-PSB = os.path.join(ROOT, 'Assets', 'Character', 'Player.psb')
+sys.path.insert(0, os.path.join(ROOT, 'Tools'))
+import project_paths as P
+ART = P.rig_dir()            # ArtSource/Characters/<Name>/Rig
+PSB = P.psb()
 TOOLS = os.path.join(ROOT, 'Tools')
 REIMPORT_CS = 'Tools/reimport_player.cs'  # relative to the project root
 
@@ -34,7 +36,7 @@ def load(p): return json.load(open(p, encoding='utf-8'))
 def stem(n): return os.path.splitext(n)[0]
 
 
-CACHE = os.path.join(ART, '.parts_cache')  # decoded part XCFs, keyed by file mtime/size (not committed)
+CACHE = os.path.join(P.ART, '.parts_cache', P.CHARACTER)  # decoded part XCFs, keyed by file mtime/size (not committed)
 
 
 def part_image(folder, n):
@@ -102,7 +104,7 @@ def main(argv=None):
 
         new, old = parts_of(staging), parts_of(os.path.join(ART, 'layers'))
         if set(new) != set(order):
-            raise SystemExit('Part names differ from ArtSource/layer_order.json\n  new parts: %s\n  missing parts: %s\n'
+            raise SystemExit('Part names differ from ArtSource/Characters/Officer/Rig/layer_order.json\n  new parts: %s\n  missing parts: %s\n'
                              'Adding/renaming/removing a part needs a rig change (bone_layout.json + layer_order.json).'
                              % (sorted(set(new) - set(order)), sorted(set(order) - set(new))))
 
@@ -135,13 +137,13 @@ def main(argv=None):
             print('dry run: nothing written'); return
 
         stamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
-        bdir = os.path.join(ART, 'backups', stamp)
-        os.makedirs(bdir)
+        bdir = os.path.join(P.BACKUPS, P.CHARACTER, stamp)
+        os.makedirs(bdir, exist_ok=True)
         for f in (PSB, PSB + '.meta'): shutil.copy2(f, bdir)
         print('backup:', os.path.relpath(bdir, ROOT))
         keep = 20  # the watcher syncs on every save, so only the newest backups are kept
-        for old in sorted(os.listdir(os.path.join(ART, 'backups')))[:-keep]:
-            shutil.rmtree(os.path.join(ART, 'backups', old), ignore_errors=True)
+        for old in sorted(os.listdir(os.path.join(P.BACKUPS, P.CHARACTER)))[:-keep]:
+            shutil.rmtree(os.path.join(P.BACKUPS, P.CHARACTER, old), ignore_errors=True)
 
         shutil.rmtree(os.path.join(ART, 'layers'))
         shutil.copytree(staging, os.path.join(ART, 'layers'))
@@ -158,7 +160,7 @@ def main(argv=None):
         if added:  # new sprites have no skinning yet: bind them to the bones listed in bone_layout.json
             layout = load(os.path.join(ART, 'bone_layout.json'))['parts']
             missing = [n for n in added if n not in layout]
-            if missing: raise SystemExit('add %s to "parts" in ArtSource/bone_layout.json first' % missing)
+            if missing: raise SystemExit('add %s to "parts" in ArtSource/Characters/Officer/Rig/bone_layout.json first' % missing)
             json.dump(dict(parts=[dict(name=n, bones=layout[n]) for n in added]),
                       open(os.path.join(ART, 'pending_skin.json'), 'w', encoding='utf-8'), indent=1)
 

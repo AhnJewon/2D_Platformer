@@ -11,9 +11,9 @@ using UnityEngine;
 
 public static class PlayerDraftClips
 {
-    const string PrefabPath = "Assets/Character/Player.prefab";
-    const string ClipDir = "Assets/Character/Animations/Draft";
-    const string ControllerPath = "Assets/Character/Animations/Player.controller";
+    const string PrefabPath = "Assets/Characters/Officer/Player.prefab";
+    const string ClipDir = "Assets/Characters/Officer/Animations/Draft";
+    const string ControllerPath = "Assets/Characters/Officer/Animations/Player.controller";
 
     // Sign convention (character faces +X): +deg = counter-clockwise.
     // Upper leg/arm +deg swings forward; lower leg -deg bends the knee; forearm +deg bends the elbow.
@@ -202,7 +202,7 @@ public static class PlayerDraftClips
 
     // ---------------- Jump (draft) ----------------
     // Key poses: anticipation crouch -> take-off -> rise -> apex tuck -> descent (legs reach forward, arms back,
-    // hair/coat lifted by the air) -> impact crouch -> idle. Angles come from ArtSource/references/jump_reference.md.
+    // hair/coat lifted by the air) -> impact crouch -> idle. Angles come from ArtSource/References/jump_reference.md.
     // Take-off is kept to 0.1 s so the jump still feels instant to the player. Values are offsets from the bind
     // pose in degrees (same sign convention as above); "bob" is the hip's vertical offset in world units.
     // Ground poses (crouch/landing) get their hip height solved so the lower foot stays on the floor.
@@ -294,7 +294,7 @@ public static class PlayerDraftClips
         return p;
     }
 
-    // Poses: ArtSource/references/jump_reference.md (Toon Boom vertical jump = standing set, Muybridge running broad jump
+    // Poses: ArtSource/References/jump_reference.md (Toon Boom vertical jump = standing set, Muybridge running broad jump
     // = moving set). Air poses are picked by the Animator from the real vertical speed (AirVel) and blended with Speed.
     static Dictionary<string, AnimationClip> MakeJumpClips(Transform animRoot)
     {
@@ -454,7 +454,7 @@ public static class PlayerDraftClips
     // Dash pose from the ZeggyGames platformer template DASH (https://zegley.itch.io/2d-platformermetroidvania-asset-pack):
     // body ~40 deg forward, lead leg bent forward-down, trail leg straight back, both arms swept back, hair/coat streaming.
     // Slide: the rig drops into a reclined sit (in/out clips); while sliding the hand-drawn slide sprite is shown
-    // (Assets/Character/Slide, from ArtSource/NAI_V5_rig_v3/slide_frames/slide_dash_reclined_loop_*).
+    // (Assets/Characters/Officer/Slide, from ArtSource/Characters/Officer/Source/slide_frames/slide_dash_reclined_loop_*).
     static Dictionary<string, AnimationClip> MakeDashSlideClips(Transform animRoot)
     {
         var idle0 = Flat(P(0f, ("spine", -4f), ("neck", 2f), ("head", 2f), ("arm_near_upper", 4f), ("arm_far_upper", 4f),
@@ -540,7 +540,7 @@ public static class PlayerDraftClips
     }
 
     // ---------------- Crouch (draft) ----------------
-    // References (ArtSource/references/crouch_reference.md):
+    // References (ArtSource/References/crouch_reference.md):
     //  - crouch: Dimensions.com "Crouching - Women (Side)", figure 2 - front foot flat with the knee up at hip height,
     //    rear knee low with the heel lifted, trunk folded forward over the thighs, head up looking ahead.
     //  - crouch walk: Animation Mentor sneak walk - contact / down / passing / up, short steps, hips rise a little at
@@ -729,7 +729,7 @@ public static class PlayerDraftClips
     }
 
     // ---------------- Backpedal (draft) ----------------
-    // Moving away from the aim (mouse) while facing it. References (ArtSource/references/backpedal_reference.md):
+    // Moving away from the aim (mouse) while facing it. References (ArtSource/References/backpedal_reference.md):
     //  - biomechanics of backward walking: joint patterns are close to a time-reversed forward walk, the TOES touch
     //    down first, stride and speed are shorter, cadence higher, stance takes a bigger share of the cycle and the
     //    knee bends less while loaded.

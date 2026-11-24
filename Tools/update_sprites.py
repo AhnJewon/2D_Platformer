@@ -1,13 +1,13 @@
-"""Push edited loose sprites (ArtSource/Sprites/<name>.xcf: hand poses, sabre, slash, dummy) into Unity.
+"""Push edited loose sprites (ArtSource/Characters/Officer/Sprites/<name>.xcf: hand poses, sabre, slash, dummy) into Unity.
 
-  python Tools/update_sprites.py              # every sprite in ArtSource/Sprites/sprites.json
+  python Tools/update_sprites.py              # every sprite in ArtSource/Characters/Officer/Sprites/sprites.json
   python Tools/update_sprites.py Hand_Grip    # only these
   python Tools/update_sprites.py --no-unity   # write the PNGs, do not ask the Editor to reimport
 
 For each sprite: the visible layers except REF* are composited (Tools/xcf_read.py, no GIMP needed) and written to its
-PNG in Assets/Character at the XCF's canvas size, so the pivot stays where the REF pivot cross is. The import settings
+PNG in Assets/Characters/Officer at the XCF's canvas size, so the pivot stays where the REF pivot cross is. The import settings
 (px/unit, pivot) come from sprites.json via Assets/Editor/WeaponSpriteImport.cs. Tools/watch_parts.py runs this
-automatically when a file in ArtSource/Sprites is saved."""
+automatically when a file in ArtSource/Characters/Officer/Sprites is saved."""
 import json, os, shutil, subprocess, sys
 import numpy as np
 from PIL import Image
@@ -16,16 +16,18 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, 'Tools'))
 import xcf_read
 
-SPR = os.path.join(ROOT, 'ArtSource', 'Sprites')
+import project_paths as PP
 
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     no_unity = '--no-unity' in argv
     names = [a for a in argv if not a.startswith('--')]
-    meta = json.load(open(os.path.join(SPR, 'sprites.json'), encoding='utf-8'))
+    entries = []
+    for SPR in PP.sprite_sets():
+        for name, m in json.load(open(os.path.join(SPR, 'sprites.json'), encoding='utf-8')).items(): entries.append((SPR, name, m))
     done = []
-    for name, m in meta.items():
+    for SPR, name, m in entries:
         if names and name not in names: continue
         xcf = os.path.join(SPR, name + '.xcf')
         if not os.path.exists(xcf): continue

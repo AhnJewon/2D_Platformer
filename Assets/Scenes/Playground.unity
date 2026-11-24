@@ -1296,6 +1296,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1267005345151392740, guid: 5b86f7981f4c307479c375af4e7aff87, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1064957064}
+    - targetCorrespondingSourceObject: {fileID: 1267005345151392740, guid: 5b86f7981f4c307479c375af4e7aff87, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1064957065}
   m_SourcePrefab: {fileID: 100100000, guid: 5b86f7981f4c307479c375af4e7aff87, type: 3}
 --- !u!1 &1064957055 stripped
 GameObject:
@@ -1518,6 +1521,31 @@ MonoBehaviour:
   emptyColor: {r: 1, g: 0.3, b: 0.25, a: 0.95}
   reloadColor: {r: 0.45, g: 0.95, b: 1, a: 0.95}
   hideSystemCursor: 1
+--- !u!114 &1064957065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1064957055}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6bf71e1950dc4f488b09f909146bf63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHurt
+  maxHealth: 100
+  health: 0
+  stunTime: 0.28
+  invincibleTime: 1.1
+  knockback: {x: 4.5, y: 3.2}
+  reactTime: 0.38
+  trunkKick: 22
+  headKick: 30
+  headDelay: 0.05
+  hitStop: 0.06
+  shake: 0.09
+  hurtEyes: {fileID: 21300000, guid: b12796b6fa46d8b43ba08b3b493402d6, type: 3}
+  faceTime: 0.5
 --- !u!1 &1253898754
 GameObject:
   m_ObjectHideFlags: 0

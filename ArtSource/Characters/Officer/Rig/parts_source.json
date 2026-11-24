@@ -1,0 +1,8 @@
+{
+ "_note": "Inputs for Tools/update_parts.py, relative to the project root. source = parts (ArtSource/Characters/Officer/Rig/Parts/<part>.xcf or .png, one file per part; layers named REF* are ignored), xcf (master file, all parts as layers) or pngs (one full-canvas PNG per part).",
+ "source": "parts",
+ "parts": "ArtSource/Characters/Officer/Rig/Parts",
+ "master_xcf": "ArtSource/Characters/Officer/Source/parts_canvas/UNASSIGNED_review_needed.xcf",
+ "xcf": "ArtSource/Characters/Officer/Source/parts_canvas/UNASSIGNED_review_needed.xcf",
+ "pngs": "ArtSource/Characters/Officer/Source/parts_canvas"
+}

@@ -98,7 +98,7 @@ Implemented (PlayerCombat.SwingShape). Times total 0.3 s:
 - The guards are asymmetric: high guard is the blade 70° above the aim, low guard is 55° below it (arm hanging,
   blade pointing forward-down). Wind-up adds 25° and the overshoot is 15°.
 - Art: NovelAI v4.5 full, seed 20431, 1536x640, white background
-  (ArtSource/NAI_V5_rig_v3/weapons/sabre_nai45_seed20431.png).
+  (ArtSource/Weapons/Source/sabre_nai45_seed20431.png).
   - Cut out with Tools/import_sabre.py.
   - 1.8 u long at 400 px/unit; a real sabre is about 0.55× its wielder's height.
   - The wiki style preset could not be read because the wiki server was down, so the prompt was matched to the
@@ -171,7 +171,7 @@ Implemented values:
   - The wrist range is now 25–110° blade-to-forearm.
 
 ## Combo (v9): cut → thrust → rising cut
-- **Data:** `MeleeWeapon` asset (`Assets/Character/Weapons/Sabre.asset`), steps in `MeleeWeapon.DefaultSabre()`.
+- **Data:** `MeleeWeapon` asset (`Assets/Weapons/Sabre.asset`), steps in `MeleeWeapon.DefaultSabre()`.
   - Each step sets its blade path relative to the aim (wind-up, through, settle), timing, arm reach in the wind-up,
     hit (damage, reach, arc, knockback and knock-up, hit-stop, hit point), body (lean in the wind-up and on the strike,
     lunge speed, stance) and effect.

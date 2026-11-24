@@ -6,7 +6,7 @@ public static class RigPoseTest {
     var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
     var cam = Camera.main; cam.orthographic = true; cam.orthographicSize = 1.8f; cam.transform.position = new Vector3(0, 1.5f, -10);
     cam.backgroundColor = new Color(0.85f, 0.87f, 0.9f); cam.clearFlags = CameraClearFlags.SolidColor;
-    var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Character/Player.prefab");
+    var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Characters/Officer/Player.prefab");
     var a = (GameObject)PrefabUtility.InstantiatePrefab(prefab); a.name = "Player_BindPose"; a.transform.position = new Vector3(-1.4f, 0, 0);
     var b = (GameObject)PrefabUtility.InstantiatePrefab(prefab); b.name = "Player_PoseTest"; b.transform.position = new Vector3(1.4f, 0, 0);
     var r = b.transform; b.GetComponentInChildren<Animator>().enabled = false; a.GetComponentInChildren<Animator>().enabled = false;

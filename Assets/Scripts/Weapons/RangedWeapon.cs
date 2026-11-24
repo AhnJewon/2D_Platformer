@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // A gun's handling; played by GunBehaviour (WeaponData.cs explains the module split). The near hand holds it
-// (HandPoses "Grip" drawing) and aims the barrel straight at the cursor. References (ArtSource/references/ranged_reference.md):
+// (HandPoses "Grip" drawing) and aims the barrel straight at the cursor. References (ArtSource/References/ranged_reference.md):
 //   - one-handed bullseye stance: body bladed, arm nearly straight (not locked), wrist firm -> armReach ~0.72, small
 //     wrist range around the hand's natural line
 //   - side-view run'n'gun (SLYNYRD Pixelblog 60): the shooting pose is an upper-body layer over any leg animation;

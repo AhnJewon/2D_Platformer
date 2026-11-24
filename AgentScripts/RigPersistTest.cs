@@ -4,7 +4,7 @@ public static class RigPersistTest {
   static ISpriteEditorDataProvider DP(string p) { var f = new SpriteDataProviderFactories(); f.Init(); var d = f.GetSpriteEditorDataProviderFromObject(AssetImporter.GetAtPath(p)); d.InitSpriteEditorDataProvider(); return d; }
   public static string Copy() {
     AssetDatabase.DeleteAsset("Assets/_RigTest"); AssetDatabase.CreateFolder("Assets", "_RigTest");
-    bool ok = AssetDatabase.CopyAsset("Assets/Character/Player.psb", T);
+    bool ok = AssetDatabase.CopyAsset("Assets/Characters/Officer/Player.psb", T);
     var so = new SerializedObject(AssetImporter.GetAtPath(T));
     return "copied=" + ok + " mapping=" + so.FindProperty("m_LayerMappingOption").intValue + " | " + State();
   }

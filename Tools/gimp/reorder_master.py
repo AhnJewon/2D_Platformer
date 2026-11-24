@@ -1,13 +1,14 @@
-# GIMP 3 batch script: reorder the master parts XCF to the Unity draw order (ArtSource/layer_order.json).
+# GIMP 3 batch script: reorder the master parts XCF to the Unity draw order (ArtSource/Characters/Officer/Rig/layer_order.json).
 # Pixels, visibility, groups and hidden reference layers are kept; only the stacking order changes.
 # Run via Tools/gimp_run.py reorder_master   (needs PROJECT_ROOT in the environment)
 import json, os
 from gi.repository import Gimp, Gio
 
 root = os.environ['PROJECT_ROOT']
-src = json.load(open(os.path.join(root, 'ArtSource', 'parts_source.json'), encoding='utf-8'))
+rig = os.path.join(root, 'ArtSource', 'Characters', os.environ.get('CHARACTER', 'Officer'), 'Rig')
+src = json.load(open(os.path.join(rig, 'parts_source.json'), encoding='utf-8'))
 master = os.path.join(root, src.get('master_xcf', src.get('xcf')))
-order = json.load(open(os.path.join(root, 'ArtSource', 'layer_order.json'), encoding='utf-8'))['order']
+order = json.load(open(os.path.join(rig, 'layer_order.json'), encoding='utf-8'))['order']
 stem = lambda n: n[:-4] if n.lower().endswith('.png') else n
 
 img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, Gio.File.new_for_path(master))

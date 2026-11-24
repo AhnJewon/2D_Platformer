@@ -57,7 +57,7 @@ fingers pointing to the upper right. Full glove covering every finger.
 ```
 
 ## 받은 뒤 처리
-결과물은 `ArtSource/NAI_V5_rig_v3/hands/`에 넣어 주세요. 파일 이름은 `A_*.png`, `B_*.png`처럼 붙이면 돼요.
+결과물은 `ArtSource/Characters/Officer/Source/hands/`에 넣어 주세요. 파일 이름은 `A_*.png`, `B_*.png`처럼 붙이면 돼요.
 이후 처리는 제가 할게요.
 - 배경 제거, 원본 장갑 색 맞추기
 - 손목 피벗, 크기(주먹 0.25 u), 칼자루 위치 맞추기

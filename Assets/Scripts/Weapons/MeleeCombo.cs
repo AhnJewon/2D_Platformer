@@ -4,7 +4,7 @@ using UnityEngine;
 using static CombatMath;
 
 // Melee behaviour: plays the MeleeWeapon's combo steps (wind-up -> strike -> recovery). A swing is a whole-body move
-// (ArtSource/references/combat_backpedal_reference.md): the trunk leans from the hips, an attack in place steps into
+// (ArtSource/References/combat_backpedal_reference.md): the trunk leans from the hips, an attack in place steps into
 // a lunge with the feet planted, the free arm swings back. Hits land part-way through the strike (arc around the
 // aim from the shoulder, or along the blade line for thrusts); the slash trail shows during the strike.
 public class MeleeCombo : WeaponBehaviour

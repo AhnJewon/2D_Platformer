@@ -1,6 +1,6 @@
 # Ranged weapon (SF pistol) references
 
-Code: `Assets/Scripts/RangedWeapon.cs` (asset `Assets/Character/Weapons/Pistol.asset`), `Projectile.cs`,
+Code: `Assets/Scripts/RangedWeapon.cs` (asset `Assets/Weapons/Pistol.asset`), `Projectile.cs`,
 `PlayerCombat.cs` (gun branch) and `CameraFollow2D.Shake`.
 
 ## Stance (real shooting)
@@ -43,7 +43,7 @@ Code: `Assets/Scripts/RangedWeapon.cs` (asset `Assets/Character/Weapons/Pistol.a
   - Switch weapons with 1 (sabre) / 2 (pistol), Q, the mouse wheel, or the gamepad Y/north button.
   - Fire with the left click (gamepad right trigger).
 
-## Art (NAI V5 + wiki preset `nai-v5-yamada9000-fis-mix`, XCF in ArtSource/Sprites, background removal only)
+## Art (NAI V5 + wiki preset `nai-v5-yamada9000-fis-mix`, XCF in ArtSource/Characters/Officer/Sprites, background removal only)
 - **Pistol:** seed 40101, a navy and gunmetal body with gold trim and a cyan energy cell.
   - About 0.55 u long. The pivot is the middle of the grip; the muzzle is at (0.46, 0.11) u.
 - **Bolt:** seed 40201, a cyan energy bolt on black, with its pivot at the head.

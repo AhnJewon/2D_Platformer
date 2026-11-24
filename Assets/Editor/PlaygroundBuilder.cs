@@ -42,7 +42,7 @@ public static class PlaygroundBuilder
         Block("Wall_Left", -16.5f, 3f, 1f, 10f, ground);
         Block("Wall_Right", 21f, 3f, 1f, 10f, ground);
 
-        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Character/Player.prefab");
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Characters/Officer/Player.prefab");
         var player = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
         player.transform.position = new Vector3(-4f, 0f, 0f);
         var rb = player.AddComponent<Rigidbody2D>();
@@ -50,7 +50,7 @@ public static class PlaygroundBuilder
         // body column only (hair/coat stick out but should not collide); feet at 0.08 above the root
         col.size = new Vector2(0.5f, 2.55f); col.offset = new Vector2(0.12f, 0.08f + 2.55f / 2f);
         var slide = player.AddComponent<SlideVisual>();
-        slide.frames = Enumerable.Range(0, 4).Select(i => AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Character/Slide/Slide_{i:00}.png")).Where(f => f != null).ToArray();
+        slide.frames = Enumerable.Range(0, 4).Select(i => AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Characters/Officer/Slide/Slide_{i:00}.png")).Where(f => f != null).ToArray();
         var ctrl = player.AddComponent<PlayerController2D>();
         player.AddComponent<DashFX>();
         var follow = cam.gameObject.AddComponent<CameraFollow2D>(); follow.target = player.transform;

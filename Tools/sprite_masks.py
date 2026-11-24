@@ -1,5 +1,5 @@
 """Cut-out MASKS (alpha only, at the NovelAI source resolution) for the loose sprites. Used by Tools/make_sprite_files.py
-to build ArtSource/Sprites/<name>.xcf = the untouched NAI original + this mask as a GIMP layer mask.
+to build <set>/Sprites/<name>.xcf = the untouched NAI original + this mask as a GIMP layer mask.
 BACKGROUND REMOVAL ONLY: nothing that belongs to the drawing is cut (no crop boxes, no erased hilt stubs, no tail fade,
 no taper). The only extra rule protects the sabre blade, whose glare is as white as the background, from being eaten.
 
@@ -14,7 +14,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-NAI = os.path.join(ROOT, 'ArtSource', 'NAI_V5_rig_v3')
+NAI = os.path.join(ROOT, 'ArtSource')   # sources below are relative to ArtSource/
 
 
 def load(rel):
@@ -64,7 +64,7 @@ def soft_edge(bg, lo, ink=60.0):
 
 
 def sabre():
-    rel = 'weapons/sabre_nai45_seed44120.png'
+    rel = 'Weapons/Source/sabre_nai45_seed44120.png'
     rgb = load(rel); h, w, _ = rgb.shape
     lo, hi = rgb.min(2), rgb.max(2)
     white = (lo >= 236) & (hi - lo <= 14)
@@ -90,7 +90,7 @@ def sabre():
 
 
 def dummy():
-    rel = 'weapons/dummy_nai45_seed8843.png'
+    rel = 'Props/Source/dummy_nai45_seed8843.png'
     rgb = load(rel)
     lo, hi = rgb.min(2), rgb.max(2)
     white = (lo >= 232) & (hi - lo <= 16)
@@ -103,7 +103,7 @@ def dummy():
 
 
 def slash():
-    rel = 'weapons/slash_nai45_seed5150.png'
+    rel = 'Weapons/Source/slash_nai45_seed5150.png'
     rgb = load(rel); h, w, _ = rgb.shape
     cx, cy, R = 545, 532, 372
     alpha = np.ones((h, w), np.float32)   # the black background is removed on export (from_black); nothing cut here
@@ -112,10 +112,10 @@ def slash():
 
 HANDS = {
     # name: (file, crop (unused: nothing is cropped), wrist, tip, hand length u, erase (unused))
-    'Hand_Grip': ('hands/grip_back_naiv5_preset_seed30102.png', (130, 0, 900, 1024), (290, 500), (840, 600), 0.27,
+    'Hand_Grip': ('Characters/Officer/Source/hands/grip_back_naiv5_preset_seed30102.png', (130, 0, 900, 1024), (290, 500), (840, 600), 0.27,
                   [[(560, 392), (680, 0), (940, 0), (940, 60), (800, 402)], [(380, 792), (600, 792), (650, 1024), (350, 1024)]]),
-    'Hand_Open': ('hands/open_nai45_seed12101.png', (120, 60, 910, 1012), (488, 120), (452, 985), 0.33, []),
-    'Hand_Spread': ('hands/spread_nai45_seed12102.png', (95, 30, 995, 1000), (285, 905), (968, 385), 0.36, []),
+    'Hand_Open': ('Characters/Officer/Source/hands/open_nai45_seed12101.png', (120, 60, 910, 1012), (488, 120), (452, 985), 0.33, []),
+    'Hand_Spread': ('Characters/Officer/Source/hands/spread_nai45_seed12102.png', (95, 30, 995, 1000), (285, 905), (968, 385), 0.36, []),
 }
 
 
@@ -134,7 +134,7 @@ def hand(name):
 def pistol():
     # NAI V5 + wiki preset, seed 40101: sci-fi service pistol, muzzle right. Pivot = middle of the grip (the fist holds
     # it there); ~0.55 u long. Grip axis ~69 deg up from the bore; muzzle at (1127, 350).
-    rel = 'weapons/pistol_naiv5_preset_seed40101.png'
+    rel = 'Weapons/Source/pistol_naiv5_preset_seed40101.png'
     rgb = load(rel)
     lo, hi = rgb.min(2), rgb.max(2)
     white = (lo >= 232) & (hi - lo <= 16)
@@ -146,14 +146,14 @@ def pistol():
 
 def bolt():
     # NAI V5 seed 40201: cyan energy bolt on black, head at the right. Pivot at the head; 0.7 u long.
-    rel = 'weapons/bolt_naiv5_seed40201.png'
+    rel = 'Weapons/Source/bolt_naiv5_seed40201.png'
     h, w = load(rel).shape[:2]
     return dict(src=rel, alpha=np.ones((h, w), np.float32), pivot=(1030, 405), ppu=(1031 - 80) / 0.7, flags=['from_black'])
 
 
 def muzzle_flash():
     # NAI V5 seed 40301: cyan starburst on black, firing right. Pivot at its origin (left middle); ~0.5 u.
-    rel = 'weapons/muzzleflash_naiv5_seed40301.png'
+    rel = 'Weapons/Source/muzzleflash_naiv5_seed40301.png'
     h, w = load(rel).shape[:2]
     return dict(src=rel, alpha=np.ones((h, w), np.float32), pivot=(165, 520), ppu=(990 - 97) / 0.5, flags=['from_black'])
 

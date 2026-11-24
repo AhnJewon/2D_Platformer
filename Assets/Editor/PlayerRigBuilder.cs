@@ -1,6 +1,6 @@
-// Builds a DRAFT Unity 2D Animation bone rig on Assets/Character/Player.psb:
+// Builds a DRAFT Unity 2D Animation bone rig on Assets/Characters/Officer/Player.psb:
 //   character skeleton (SpriteBones) -> per-sprite bone subsets -> grid mesh -> distance-based weights.
-// Input: ArtSource/bone_layout.json (canvas pixels, y down) and ArtSource/layers/*.png + layers.json
+// Input: ArtSource/Characters/Officer/Rig/bone_layout.json (canvas pixels, y down) and ArtSource/Characters/Officer/Rig/layers/*.png + layers.json
 // (layer pixels extracted from the GIMP XCF). Re-running OVERWRITES skeleton/mesh/weights on the PSB,
 // so after you hand-tune them in the Skinning Editor, do not run this again (or back up Player.psb.meta first).
 using System;
@@ -16,8 +16,8 @@ using UnityEngine.U2D;
 
 public static class PlayerRigBuilder
 {
-    const string PsbPath = "Assets/Character/Player.psb";
-    const string PrefabPath = "Assets/Character/Player.prefab";
+    const string PsbPath = "Assets/Characters/Officer/Player.psb";
+    const string PrefabPath = "Assets/Characters/Officer/Player.prefab";
     const float PixelsPerUnit = 400f;
 
     [Serializable] class BoneDef { public string name; public string parent; public float[] head; public float[] tail; }
@@ -91,12 +91,12 @@ public static class PlayerRigBuilder
         return string.Join("\n", log);
     }
 
-    // Rebuilds one sprite's grid mesh from its current pixels (ArtSource/layers). Each new vertex copies the
+    // Rebuilds one sprite's grid mesh from its current pixels (ArtSource/Characters/Officer/Rig/layers). Each new vertex copies the
     // weights of the nearest old vertex, so hand-painted weights carry over approximately; bones are untouched.
     // Hand-edited mesh topology (vertices/edges you placed yourself) is replaced.
     public static string RemeshPart(string psbPath, string spriteName)
     {
-        var layersFile = JsonUtility.FromJson<LayersFile>(File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/layers/layers.json")));
+        var layersFile = JsonUtility.FromJson<LayersFile>(File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/Characters/Officer/Rig/layers/layers.json")));
         var factory = new SpriteDataProviderFactories();
         factory.Init();
         var dp = factory.GetSpriteEditorDataProviderFromObject(AssetImporter.GetAtPath(psbPath));
@@ -110,7 +110,7 @@ public static class PlayerRigBuilder
 
         var layer = layersFile.layers.First(l => l.name == spriteName + ".png");
         var tex = new Texture2D(2, 2);
-        tex.LoadImage(File.ReadAllBytes(Path.Combine(ProjectRoot, "ArtSource/layers", layer.file)));
+        tex.LoadImage(File.ReadAllBytes(Path.Combine(ProjectRoot, "ArtSource/Characters/Officer/Rig/layers", layer.file)));
         BuildGridMesh(tex, layersFile.canvas[1], partPos, (int)rect.rect.width, (int)rect.rect.height, out var verts, out var indices, out var edges);
         UnityEngine.Object.DestroyImmediate(tex);
 
@@ -133,13 +133,13 @@ public static class PlayerRigBuilder
     [Serializable] class NewPart { public string name; public string[] bones; }
     [Serializable] class NewPartList { public NewPart[] parts; }
 
-    // Skins sprites that were just added to the PSB (Tools/update_parts.py writes ArtSource/pending_skin.json).
+    // Skins sprites that were just added to the PSB (Tools/update_parts.py writes ArtSource/Characters/Officer/Rig/pending_skin.json).
     // Uses the CURRENT character skeleton (your Skinning Editor joint edits), builds a grid mesh from the part's
     // pixels and weights it: one bone = rigid, several = distance-based. Other sprites are not touched.
     public static string SkinNewParts(string psbPath, string jsonPath)
     {
         var list = JsonUtility.FromJson<NewPartList>(File.ReadAllText(jsonPath)).parts;
-        var layersFile = JsonUtility.FromJson<LayersFile>(File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/layers/layers.json")));
+        var layersFile = JsonUtility.FromJson<LayersFile>(File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/Characters/Officer/Rig/layers/layers.json")));
         int canvasH = layersFile.canvas[1];
         var factory = new SpriteDataProviderFactories();
         factory.Init();
@@ -196,7 +196,7 @@ public static class PlayerRigBuilder
 
             var layer = layersFile.layers.First(l => l.name == np.name + ".png");
             var tex = new Texture2D(2, 2);
-            tex.LoadImage(File.ReadAllBytes(Path.Combine(ProjectRoot, "ArtSource/layers", layer.file)));
+            tex.LoadImage(File.ReadAllBytes(Path.Combine(ProjectRoot, "ArtSource/Characters/Officer/Rig/layers", layer.file)));
             BuildGridMesh(tex, canvasH, partPos, (int)rect.rect.width, (int)rect.rect.height, out var verts, out var indices, out var edges);
             UnityEngine.Object.DestroyImmediate(tex);
 
@@ -316,7 +316,7 @@ public static class PlayerRigBuilder
     public static string AddToeBone(string psbPath, string bootSprite, string parentBone, string toeName,
         float headX, float headY, float tailX, float tailY, float ballX, float instepY, float blend)
     {
-        var layersFile = JsonUtility.FromJson<LayersFile>(File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/layers/layers.json")));
+        var layersFile = JsonUtility.FromJson<LayersFile>(File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/Characters/Officer/Rig/layers/layers.json")));
         var factory = new SpriteDataProviderFactories();
         factory.Init();
         var dp = factory.GetSpriteEditorDataProviderFromObject(AssetImporter.GetAtPath(psbPath));
@@ -369,7 +369,7 @@ public static class PlayerRigBuilder
 
         var layer = layersFile.layers.First(l => l.name == bootSprite + ".png");
         var tex = new Texture2D(2, 2);
-        tex.LoadImage(File.ReadAllBytes(Path.Combine(ProjectRoot, "ArtSource/layers", layer.file)));
+        tex.LoadImage(File.ReadAllBytes(Path.Combine(ProjectRoot, "ArtSource/Characters/Officer/Rig/layers", layer.file)));
         BuildGridMesh(tex, H, partPos, (int)rect.rect.width, (int)rect.rect.height, out var verts, out var indices, out var edges, 8);
         UnityEngine.Object.DestroyImmediate(tex);
         float Smooth(float a, float b, float x) { float t = Mathf.Clamp01((x - a) / (b - a)); return t * t * (3f - 2f * t); }
@@ -484,7 +484,7 @@ public static class PlayerRigBuilder
     public static string AddAnkle(string psbPath, string bootSprite, string shinBone, string footName, string toeName,
         float ankleX, float ankleY, float creaseY, float ballX, float instepY, float blend)
     {
-        var layersFile = JsonUtility.FromJson<LayersFile>(File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/layers/layers.json")));
+        var layersFile = JsonUtility.FromJson<LayersFile>(File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/Characters/Officer/Rig/layers/layers.json")));
         var factory = new SpriteDataProviderFactories();
         factory.Init();
         var dp = factory.GetSpriteEditorDataProviderFromObject(AssetImporter.GetAtPath(psbPath));
@@ -577,7 +577,7 @@ public static class PlayerRigBuilder
 
         var layer = layersFile.layers.First(l => l.name == bootSprite + ".png");
         var tex = new Texture2D(2, 2);
-        tex.LoadImage(File.ReadAllBytes(Path.Combine(ProjectRoot, "ArtSource/layers", layer.file)));
+        tex.LoadImage(File.ReadAllBytes(Path.Combine(ProjectRoot, "ArtSource/Characters/Officer/Rig/layers", layer.file)));
         BuildGridMesh(tex, H, partPos, (int)rect.rect.width, (int)rect.rect.height, out var verts, out var indices, out var edges, 8);
         UnityEngine.Object.DestroyImmediate(tex);
         float Smooth(float a, float b, float x) { float t = Mathf.Clamp01((x - a) / (b - a)); return t * t * (3f - 2f * t); }
@@ -627,8 +627,8 @@ public static class PlayerRigBuilder
 
     public static void BuildDraftAt(string psbPath, bool createPrefab)
     {
-        string layoutJson = File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/bone_layout.json"));
-        var layersFile = JsonUtility.FromJson<LayersFile>(File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/layers/layers.json")));
+        string layoutJson = File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/Characters/Officer/Rig/bone_layout.json"));
+        var layersFile = JsonUtility.FromJson<LayersFile>(File.ReadAllText(Path.Combine(ProjectRoot, "ArtSource/Characters/Officer/Rig/layers/layers.json")));
         int canvasH = layersFile.canvas[1];
 
         // --- parse bones (JsonUtility can't read the dictionary, so parts are parsed by hand below)
@@ -699,7 +699,7 @@ public static class PlayerRigBuilder
             // --- mesh from layer alpha
             var layer = layersFile.layers.First(l => l.name == rect.name + ".png");
             var tex = new Texture2D(2, 2);
-            tex.LoadImage(File.ReadAllBytes(Path.Combine(ProjectRoot, "ArtSource/layers", layer.file)));
+            tex.LoadImage(File.ReadAllBytes(Path.Combine(ProjectRoot, "ArtSource/Characters/Officer/Rig/layers", layer.file)));
             BuildGridMesh(tex, canvasH, partPos, (int)rect.rect.width, (int)rect.rect.height,
                 out var verts, out var indices, out var edges);
             UnityEngine.Object.DestroyImmediate(tex);

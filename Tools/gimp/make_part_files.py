@@ -1,4 +1,4 @@
-# GIMP 3 batch script (run by Tools/make_part_files.py): one XCF per part in ArtSource/Parts/.
+# GIMP 3 batch script (run by Tools/make_part_files.py): one XCF per part in ArtSource/Characters/Officer/Rig/Parts/.
 # Each file: the part layer (named like the part) on top + a locked "REF ..." layer showing the other parts
 # at low opacity for context. Layers whose name starts with "REF" are ignored by Tools/update_parts.py.
 # Existing files are never overwritten.

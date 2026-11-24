@@ -40,6 +40,7 @@ public class GunBehaviour : WeaponBehaviour
         }
     }
     public override void OnUnequip() { if (gauge != null) gauge.Release(null); }
+    public override void OnRemoved() { if (gauge != null) { Object.Destroy(gauge); gauge = null; } }
 
     public override void Reload()
     {

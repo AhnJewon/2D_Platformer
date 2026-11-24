@@ -56,6 +56,32 @@ public class CombatTestDriver : MonoBehaviour
             Time.captureFramerate = 0;
         }
 
+        // ---- 0. inventory: start with the pistol only, pick up the sabre from the floor ----
+        var sabreData = (WeaponData)null;
+        var floor = FindAnyObjectByType<WeaponPickup>();
+        sb.Append($"start: weapons={c.WeaponCount} in hand={c.CurrentData?.name} (expect 1, Pistol)\n");
+        if (floor != null)
+        {
+            sabreData = floor.data;
+            p.transform.position = new Vector3(floor.transform.position.x - 0.3f, 0f, 0); rb.linearVelocity = Vector2.zero;
+            c.scriptedAim = (Vector2)floor.transform.position + new Vector2(3f, 1.5f); yield return For(0.4f);
+            bool nearPrompt = c.NearbyPickup == floor;
+            yield return Shot("pickup_prompt");
+            c.PressInteract(); yield return For(0.2f);
+            sb.Append($"pickup: prompt={nearPrompt} weapons={c.WeaponCount} in hand={c.CurrentData?.name} floor left={(floor != null)} (expect True, 2, Sabre, False)\n");
+            // full: picking up again swaps the weapon in hand (dropped on the floor)
+            var extra = WeaponPickup.Spawn(c.GunData, Pos() + new Vector2(0.2f, 0.3f), 0.1f);
+            yield return For(0.7f);
+            c.PressInteract(); yield return For(0.2f);
+            var dropped = FindAnyObjectByType<WeaponPickup>();
+            sb.Append($"swap when full: weapons={c.WeaponCount} in hand={c.CurrentData?.name} dropped={(dropped != null ? dropped.data.name : "none")} (expect 2, Pistol, Sabre)\n");
+            yield return For(0.5f);
+            c.PressInteract(); yield return For(0.2f);   // take the sabre back (drops the 2nd pistol)
+            foreach (var w in FindObjectsByType<WeaponPickup>(FindObjectsSortMode.None)) Destroy(w.gameObject);
+            sb.Append($"swap back: in hand={c.CurrentData?.name} weapons={c.WeaponAt(0)?.name},{c.WeaponAt(1)?.name}\n");
+        }
+        if (sabreData != null) c.SelectWeapon(sabreData);
+
         // ---- 1. aim + swings at the dummy ----
         float dx = near.transform.position.x;
         p.transform.position = new Vector3(dx - 1.6f, 0f, 0); rb.linearVelocity = Vector2.zero;
@@ -80,7 +106,7 @@ public class CombatTestDriver : MonoBehaviour
         // ---- gun: 5 shots at the dummy from 4 u, then empty the magazine -> automatic reload ----
         if (c.GunData != null)
         {
-            c.SetSlot(1);
+            c.SelectWeapon(c.GunData);
             p.transform.position = new Vector3(dx - 4f, 0f, 0); rb.linearVelocity = Vector2.zero;
             c.scriptedAim = new Vector2(dx, 1.4f); yield return For(0.4f);
             h0 = near.hits; int a0 = c.Ammo, s0 = c.ShotCount;
@@ -96,7 +122,7 @@ public class CombatTestDriver : MonoBehaviour
             for (int k = 0; k < 3; ++k) { c.PressAttack(); yield return For(0.2f); }
             yield return For(0.4f);
             sb.Append($"gun facing left: facing={p.Facing} hits={near.hits - h0} (expect 3)\n");
-            c.SetSlot(0); yield return For(0.2f);
+            c.SelectWeapon(sabreData); yield return For(0.2f);
         }
 
         // mirrored: dummy on her LEFT
@@ -193,11 +219,11 @@ public class CombatTestDriver : MonoBehaviour
             // gun: shooting while the cursor sweeps over the dummy, then backpedalling while shooting
             if (c.GunData != null)
             {
-                c.SetSlot(1);
+                c.SelectWeapon(c.GunData);
                 p.transform.position = new Vector3(dx - 3.5f, 0f, 0); rb.linearVelocity = Vector2.zero; yield return For(0.3f);
                 c.SetAmmoForTest(5);
                 yield return Film("gun", 2.6f, i => { c.scriptedAim = new Vector2(dx, 1.4f + 0.8f * Mathf.Sin(i / 9f)); if (i % 5 == 0 && i < 40) c.PressAttack(); return null; });
-                c.SetSlot(0);
+                c.SelectWeapon(sabreData);
             }
             // backpedal away from the dummy while swinging
             p.transform.position = new Vector3(-2.4f, 0f, 0); rb.linearVelocity = Vector2.zero; yield return For(0.3f);

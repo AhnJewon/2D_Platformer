@@ -54,6 +54,7 @@ public abstract class WeaponBehaviour
 
     public virtual void OnEquip() { }
     public virtual void OnUnequip() { }
+    public virtual void OnRemoved() { }       // dropped / swapped away: clean up what OnEquip created
     // Update: input. pressed = this frame, held = button down, queued = a buffered click (clear it when used)
     public abstract void Tick(bool pressed, bool held, ref bool queued);
     // LateUpdate, before the body is posed

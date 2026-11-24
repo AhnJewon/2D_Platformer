@@ -126,6 +126,8 @@ public class GunCellGauge : MonoBehaviour
         tex.SetPixels32(rect.x, rect.y, rect.width, rect.height, block); tex.Apply(false);
     }
 
+    void OnDestroy() { if (smoke != null) Destroy(smoke.gameObject); }
+
     public void Release(Sprite restore)
     {
         if (sr != null && sr.sprite == live) sr.sprite = restore;

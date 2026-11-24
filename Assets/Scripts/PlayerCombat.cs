@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using static CombatMath;
@@ -16,13 +17,17 @@ public interface IDamageable { void TakeHit(float damage, Vector2 dir, Vector2 p
 //   - the near arm (2-bone IK, elbow always on the same side) and the weapon rigid in the drawn grip
 //     (HandPoses gripPose), the wrist kept inside the weapon's range
 //   - shared services for behaviours: hit-stop, two-hand support arm, aim helpers
+// Inventory: she starts with `weapons` (the pistol) and carries at most maxWeapons. Other weapons are picked up from
+// the floor (WeaponPickup, E / pad west): into a free slot, or swapped with the weapon in hand, which is dropped.
 [DefaultExecutionOrder(-50)]   // LateUpdate after the Animator but before SpriteSkin deformation (order 10)
 [RequireComponent(typeof(PlayerController2D))]
 public class PlayerCombat : MonoBehaviour
 {
     [Header("Weapons")]
-    public WeaponData[] weapons;             // slots (1, 2, 3...)
+    public WeaponData[] weapons;             // starting loadout (slot 1, 2...)
+    public int maxWeapons = 2;
     public int slot;
+    public float pickupRange = 1.1f;
     public int weaponSortingOrder = 26;      // under the near hand (27) so the grip sits in the fist
 
     [Header("Aim / body")]
@@ -34,7 +39,10 @@ public class PlayerCombat : MonoBehaviour
     public void PressAttack() => attackQueued = true;
 
     // ---- state for behaviours, HUD and tests ----
-    public WeaponBehaviour Current => behaviours != null && slot >= 0 && slot < behaviours.Length ? behaviours[slot] : null;
+    public WeaponBehaviour Current => slot >= 0 && slot < behaviours.Count ? behaviours[slot] : null;
+    public int WeaponCount => behaviours.Count;
+    public WeaponData WeaponAt(int i) => i >= 0 && i < behaviours.Count ? behaviours[i].data : null;
+    public WeaponPickup NearbyPickup { get; private set; }   // what E would pick up (prompt)
     public WeaponData CurrentData => Current?.data;
     public Vector2 AimWorld => aimWorld;
     public float AimAngle { get; private set; }      // model space, degrees (0 = straight ahead)
@@ -58,7 +66,9 @@ public class PlayerCombat : MonoBehaviour
     public float SinceShot => Current != null ? Current.SinceShot : 99f;
     public bool IsSwinging => Current != null && Current.Busy;
     public string CurrentStep => Current != null ? Current.StateName : "";
-    GunBehaviour FirstGun { get { if (behaviours != null) foreach (var b in behaviours) if (b is GunBehaviour g) return g; return null; } }
+    GunBehaviour FirstGun { get { foreach (var b in behaviours) if (b is GunBehaviour g) return g; return null; } }
+    public void SelectWeapon(WeaponData d) { for (int i = 0; i < behaviours.Count; ++i) if (behaviours[i].data == d) { SetSlot(i); return; } }
+    public void PressInteract() => interactQueued = true;
     public RangedWeapon GunData => FirstGun?.data as RangedWeapon;
     public bool Reloading => FirstGun != null && FirstGun.Reloading;
     public int ShotCount => FirstGun != null ? FirstGun.ShotCount : 0;
@@ -69,7 +79,8 @@ public class PlayerCombat : MonoBehaviour
     Rigidbody2D rb;
     HandPoses hands;
     Camera cam;
-    WeaponBehaviour[] behaviours;
+    readonly List<WeaponBehaviour> behaviours = new List<WeaponBehaviour>();
+    bool interactQueued;
     Transform model, upper, fore, hand, farUpper, farFore, farHand, head, neck, spine, hip;
     Transform legRear, legFront, shinRear, shinFront, footRear, footFront, toeRear, toeFront;
     Transform weapon; SpriteRenderer weaponSr;
@@ -118,24 +129,51 @@ public class PlayerCombat : MonoBehaviour
         var w = new GameObject("Weapon"); weapon = w.transform; weapon.SetParent(model, false);
         weaponSr = w.AddComponent<SpriteRenderer>(); weaponSr.sortingOrder = weaponSortingOrder;
         aimWorld = (Vector2)transform.position + new Vector2(3f, 1.6f);
-        int n = weapons != null ? weapons.Length : 0;
-        behaviours = new WeaponBehaviour[n];
-        for (int i = 0; i < n; ++i) behaviours[i] = weapons[i] != null ? weapons[i].CreateBehaviour(this) : null;
+        if (weapons != null) foreach (var d in weapons) if (d != null && behaviours.Count < maxWeapons) behaviours.Add(d.CreateBehaviour(this));
         int s0 = slot; slot = -1; SetSlot(s0);
+        if (Current == null) weaponSr.sprite = null;
+    }
+
+    // Pick up a weapon: into a free slot (and take it in hand), or swap it with the weapon in hand.
+    // Returns the weapon that was let go (to drop on the floor), or null.
+    public WeaponData Pickup(WeaponData d)
+    {
+        if (d == null) return null;
+        var nb = d.CreateBehaviour(this);
+        if (behaviours.Count < maxWeapons || Current == null)
+        {
+            behaviours.Add(nb);
+            SetSlot(behaviours.Count - 1);
+            return null;
+        }
+        var old = Current;
+        old.OnUnequip(); old.OnRemoved();
+        behaviours[slot] = nb;
+        int s0 = slot; slot = -1; SetSlot(s0);
+        return old.data;
+    }
+
+    void Interact()
+    {
+        var p = NearbyPickup;
+        if (p == null || pc.IsSliding) return;
+        var dropped = Pickup(p.data);
+        p.Take();
+        if (dropped != null) WeaponPickup.Spawn(dropped, (Vector2)transform.position + new Vector2(0f, 0.05f), -Mathf.Sign(model.lossyScale.x));
     }
 
     public void SetSlot(int s)
     {
-        if (behaviours == null || behaviours.Length == 0) return;
-        s = Mathf.Clamp(s, 0, behaviours.Length - 1);
-        if (behaviours[s] == null || s == slot) return;
+        if (behaviours.Count == 0) return;
+        s = Mathf.Clamp(s, 0, behaviours.Count - 1);
+        if (s == slot) return;
         Current?.OnUnequip();
         slot = s;
         weaponSr.sprite = CurrentData.sprite; weaponSr.flipY = CurrentData.flipSprite;
         attackQueued = false;
         Current.OnEquip();
     }
-    void Cycle(int d) { if (behaviours != null && behaviours.Length > 0) SetSlot((slot + d + behaviours.Length) % behaviours.Length); }
+    void Cycle(int d) { if (behaviours.Count > 1) SetSlot((slot + d + behaviours.Count) % behaviours.Count); }
 
     // +1 / -1 = face right / left, 0 = keep the current facing (cursor right above/below her)
     public float DesiredFacing()
@@ -176,6 +214,10 @@ public class PlayerCombat : MonoBehaviour
             if (kb.tKey.wasPressedThisFrame) Current?.AltAction();
         }
         if (pad != null && pad.buttonNorth.wasPressedThisFrame) Cycle(1);
+        // pick up: E / pad west, the nearest pickup within reach
+        NearbyPickup = WeaponPickup.Nearest(transform.position + Vector3.up * 0.4f, pickupRange);
+        if (kb != null && kb.eKey.wasPressedThisFrame || pad != null && pad.buttonWest.wasPressedThisFrame) interactQueued = true;
+        if (interactQueued) { interactQueued = false; Interact(); }
         Current?.Tick(pressed, held, ref attackQueued);
     }
 

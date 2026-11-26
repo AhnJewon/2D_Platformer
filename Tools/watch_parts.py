@@ -1,4 +1,4 @@
-"""Watch ArtSource/Characters/Officer/Rig/Parts and push every saved part into Unity automatically (keeps the rig).
+"""Watch ArtSource/Characters/<CHARACTER>/Rig/Parts (default Officer) and every Sprites/ set, and push every saved part into Unity automatically (keeps the rig).
 
   uv run --no-project --with numpy --with pillow python Tools/watch_parts.py      (Ctrl+C to stop)
 
@@ -19,9 +19,21 @@ SETTLE = 1.0   # seconds a file must stay unchanged before syncing (GIMP writes 
 POLL = 0.5
 
 
+_missing = set()
+
+
 def snapshot(folder):
+    """files in folder; a folder that is gone (moved or renamed while watching) counts as empty, with one warning"""
     out = {}
-    for f in os.listdir(folder):
+    try:
+        names = os.listdir(folder)
+    except OSError:
+        if folder not in _missing:
+            _missing.add(folder)
+            print('folder not found, skipping (restart the watcher if it moved):', os.path.relpath(folder, ROOT), flush=True)
+        return out
+    _missing.discard(folder)
+    for f in names:
         if f.lower().endswith(('.xcf', '.png')):
             try:
                 st = os.stat(os.path.join(folder, f)); out[f] = (st.st_mtime_ns, st.st_size)
